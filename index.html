@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ANA特典航空券 必要マイル計算アプリ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0f2742; --ink-soft:#3a5a78;
+    --ana-blue:#0a3d8f; --ana-blue2:#1565d8; --sea:#1aa3b8;
+    --card:rgba(255,255,255,0.84); --line:rgba(20,80,140,0.16);
+    --shadow:0 18px 50px -20px rgba(8,40,80,0.45); --radius:20px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{font-family:"Noto Sans JP",system-ui,sans-serif;color:var(--ink);line-height:1.6;
+    min-height:100vh;position:relative;background-color:#bfe3ec}
+  /* ===== リゾート背景画像（ここを差し替え）=====
+     ↓ url(...) の中を、用意した画像ファイル名に変更してください（同じフォルダに置く）。
+     ・画像をはっきり → rgba値の最後の数字(透明度)を小さく（例 0.20）
+     ・文字を読みやすく → 透明度を大きく（例 0.55） */
+  body::before{content:"";position:fixed;inset:0;z-index:-1;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.34) 0%, rgba(210,238,242,0.42) 40%, rgba(120,195,215,0.50) 100%),
+      url("resort.jpg");
+    background-size:cover;background-position:center}
+  .wrap{max-width:780px;margin:0 auto;padding:26px 16px 60px}
+
+  header{text-align:center;color:#fff;margin:14px 0 22px;text-shadow:0 2px 14px rgba(8,40,70,0.55)}
+  header .badge{display:inline-block;font-size:12px;letter-spacing:.18em;font-weight:700;
+    background:rgba(255,255,255,0.22);border:1px solid rgba(255,255,255,0.5);
+    padding:5px 14px;border-radius:99px;margin-bottom:12px;backdrop-filter:blur(4px)}
+  header h1{font-size:26px;font-weight:900}
+  header p{font-size:13px;opacity:.95;margin-top:6px;font-weight:500}
+
+  .tabs{display:flex;gap:8px;background:rgba(255,255,255,0.55);backdrop-filter:blur(8px);
+    padding:6px;border-radius:99px;max-width:360px;margin:0 auto 20px;box-shadow:var(--shadow)}
+  .tab{flex:1;border:0;background:transparent;font-family:inherit;font-weight:700;font-size:15px;
+    color:var(--ink-soft);padding:11px 0;border-radius:99px;cursor:pointer;transition:.2s}
+  .tab.active{background:linear-gradient(135deg,var(--ana-blue),var(--ana-blue2));color:#fff;
+    box-shadow:0 6px 16px -4px rgba(10,61,143,.6)}
+
+  .card{background:var(--card);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.6);
+    border-radius:var(--radius);box-shadow:var(--shadow);padding:22px 20px;margin-bottom:16px}
+
+  .field{margin-bottom:16px}.field:last-child{margin-bottom:0}
+  label.lbl{display:block;font-size:13px;font-weight:700;color:var(--ink-soft);margin-bottom:7px}
+  .hint{font-size:11.5px;color:#7d93a6;font-weight:500;margin-top:5px}
+  select,input[type=date],input[type=number]{width:100%;font-family:inherit;font-size:15px;font-weight:500;
+    color:var(--ink);background:#fff;border:1.5px solid var(--line);border-radius:13px;padding:12px 13px;transition:.15s}
+  select:focus,input:focus{outline:none;border-color:var(--ana-blue2);box-shadow:0 0 0 3px rgba(21,101,216,.15)}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .row3{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:end}
+  .arrow{font-size:20px;color:var(--ana-blue2);padding-bottom:10px;text-align:center}
+  .seg{display:flex;gap:6px;background:#eef4fb;border-radius:12px;padding:5px}
+  .seg button{flex:1;border:0;background:transparent;font-family:inherit;font-weight:700;font-size:13px;
+    color:var(--ink-soft);padding:9px 2px;border-radius:9px;cursor:pointer;transition:.15s}
+  .seg button.on{background:#fff;color:var(--ana-blue);box-shadow:0 2px 8px -2px rgba(10,61,143,.4)}
+
+  .result .route{font-size:14px;color:var(--ink);font-weight:700;margin-bottom:3px}
+  .result .band{font-size:12.5px;font-weight:600;color:var(--ana-blue);margin-bottom:14px}
+  .result .band .ofcl{display:inline-block;font-size:10px;background:#e3f6ec;color:#2e9e6b;
+    font-weight:700;padding:1px 7px;border-radius:99px;margin-left:6px}
+  .result .band .approx{background:#fdf0dc;color:#c8851d}
+  .seasons{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .scard{background:#fff;border:2px solid #eaf0f6;border-radius:15px;padding:14px 6px;text-align:center;position:relative;transition:.2s}
+  .scard .sname{font-size:11px;font-weight:700;margin-bottom:1px}
+  .scard .sfull{font-size:9.5px;color:#8aa0b2;font-weight:600;margin-bottom:8px}
+  .scard .mval{font-size:22px;font-weight:900;color:var(--ink);line-height:1.1}
+  .scard .munit{font-size:10.5px;color:#8aa0b2;font-weight:700;margin-top:2px}
+  .scard.L .sname{color:#2e9e6b}.scard.R .sname{color:#d98a1f}.scard.H .sname{color:#d94f6c}
+  .scard.active{border-color:var(--ana-blue2);box-shadow:0 10px 26px -10px rgba(21,101,216,.55);transform:translateY(-3px)}
+  .scard.active::after{content:"該当";position:absolute;top:-9px;left:50%;transform:translateX(-50%);
+    background:var(--ana-blue2);color:#fff;font-size:10px;font-weight:700;padding:2px 10px;border-radius:99px}
+  .scard.na .mval{font-size:17px;color:#b9c6d2}
+
+  .breakdown{margin-top:4px;background:#fff;border:2px solid #eaf0f6;border-radius:15px;overflow:hidden}
+  .brow{display:flex;justify-content:space-between;align-items:center;padding:12px 15px;font-size:13.5px;border-bottom:1px solid #eef2f6}
+  .brow:last-child{border-bottom:0}
+  .brow .lside{font-weight:700;color:var(--ink-soft)}
+  .brow .lside small{display:block;font-weight:500;color:#8aa0b2;font-size:11px;margin-top:1px}
+  .brow .rside{font-weight:900;font-size:17px;color:var(--ink);white-space:nowrap}
+  .brow.total{background:linear-gradient(135deg,#0a3d8f,#1565d8)}
+  .brow.total .lside{color:#fff}.brow.total .rside{color:#fff;font-size:21px}
+  .tag{display:inline-block;font-size:10px;font-weight:700;padding:1px 7px;border-radius:99px;margin-left:5px;vertical-align:middle}
+  .tagL{background:#e3f6ec;color:#2e9e6b}.tagR{background:#fdf0dc;color:#d98a1f}.tagH{background:#fde7ec;color:#d94f6c}
+
+  .compare{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px}
+  .cbox{background:#fff;border:2px solid #eaf0f6;border-radius:15px;padding:14px;text-align:center;position:relative}
+  .cbox.best{border-color:#2e9e6b;box-shadow:0 8px 22px -10px rgba(46,158,107,.5)}
+  .cbox.best::after{content:"お得";position:absolute;top:-9px;right:10px;background:#2e9e6b;color:#fff;
+    font-size:10px;font-weight:700;padding:2px 9px;border-radius:99px}
+  .cbox .ctit{font-size:11.5px;font-weight:700;color:var(--ink-soft);margin-bottom:6px;line-height:1.4}
+  .cbox .cval{font-size:23px;font-weight:900;color:var(--ink)}
+  .cbox .cunit{font-size:10.5px;color:#8aa0b2;font-weight:700}
+  .cbox .csub{font-size:10.5px;color:#8aa0b2;margin-top:5px;line-height:1.4}
+
+  .note{margin-top:13px;font-size:12px;font-weight:600;text-align:center;color:var(--ink-soft);background:#eef6ff;border-radius:11px;padding:9px 12px;line-height:1.5}
+  .note.warn{background:#fff5e9;color:#b06b18}
+  .subnote{font-size:11px;color:#7d93a6;text-align:center;margin-top:8px;line-height:1.5}
+  .zinfo{margin-top:8px;font-size:12px;font-weight:600;color:var(--ana-blue);background:#eef6ff;border-radius:11px;padding:10px 12px;line-height:1.55}
+  .zinfo small{display:block;color:#6a86a0;font-weight:500;margin-top:3px}
+
+  details.info{background:rgba(255,255,255,0.72);backdrop-filter:blur(8px);border-radius:16px;padding:2px 18px;margin-bottom:14px;border:1px solid rgba(255,255,255,0.6)}
+  details.info summary{cursor:pointer;font-weight:700;font-size:13.5px;color:var(--ink-soft);padding:13px 0;list-style:none}
+  details.info summary::-webkit-details-marker{display:none}
+  details.info summary::before{content:"▸ ";color:var(--ana-blue2)}
+  details.info[open] summary::before{content:"▾ "}
+  details.info .body{font-size:12.5px;color:var(--ink-soft);padding:0 0 16px;line-height:1.8}
+  details.info .body b{color:var(--ink)} details.info code{background:#eef4fb;padding:1px 6px;border-radius:5px;font-size:11.5px}
+  footer{text-align:center;color:#fff;font-size:11.5px;margin-top:6px;text-shadow:0 1px 8px rgba(8,40,70,.5);opacity:.95;line-height:1.8}
+  @media(max-width:560px){header h1{font-size:21px}.scard .mval{font-size:19px}.card{padding:18px 15px}.compare{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <span class="badge">ANA MILEAGE CLUB</span>
+    <h1>ANA特典航空券 必要マイル計算</h1>
+    <p>国内線（離島・乗継対応）・国際線の必要マイルをシーズン別に計算</p>
+  </header>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="dom">国内線</button>
+    <button class="tab" data-tab="intl">国際線</button>
+  </div>
+
+  <!-- ============ 国内線 ============ -->
+  <section id="dom">
+    <div class="card">
+      <div class="field">
+        <label class="lbl">計算タイプ</label>
+        <div class="seg" id="domMode">
+          <button class="on" data-m="direct">直行（1区間）</button>
+          <button data-m="island">沖縄離島（那覇乗継）</button>
+          <button data-m="mile">区間マイル入力</button>
+        </div>
+      </div>
+
+      <!-- 直行 -->
+      <div id="domDirect">
+        <div class="row3">
+          <div class="field" style="margin:0"><label class="lbl">出発空港</label><select id="dFrom"></select></div>
+          <div class="arrow">⇄</div>
+          <div class="field" style="margin:0"><label class="lbl">到着空港</label><select id="dTo"></select></div>
+        </div>
+      </div>
+
+      <!-- 沖縄離島（那覇乗継） -->
+      <div id="domIsland" style="display:none">
+        <div class="field"><label class="lbl">本土側の空港</label><select id="iMain"></select></div>
+        <div class="field"><label class="lbl">沖縄の離島（那覇で乗継）</label><select id="iIsland"></select>
+          <div class="hint">本土 ⇄ 那覇 ⇄ 離島。ANA公式の「沖縄離島4区間チャート（往復）」と「1区間ずつ合算」を両方表示します。</div>
+        </div>
+      </div>
+
+      <!-- 区間マイル直接入力 -->
+      <div id="domMileBox" style="display:none">
+        <div class="field"><label class="lbl">区間マイル数（片道1区間）</label>
+          <input type="number" id="dMile" placeholder="例：650" min="0" max="2000">
+          <div class="hint">ANAの区間基本マイレージを入力すると区分を自動判定（0〜2,000マイル）</div>
+        </div>
+      </div>
+
+      <!-- 共通：往復/片道 + 日付 -->
+      <div class="field"><label class="lbl">旅程</label>
+        <div class="seg" id="dTrip"><button class="on" data-t="ow">片道</button><button data-t="rt">往復</button></div>
+      </div>
+      <div class="field" id="dDateOWBox"><label class="lbl">搭乗日（任意・シーズン自動判定）</label><input type="date" id="dDate"></div>
+      <div id="dDateRTBox" style="display:none">
+        <div class="row2">
+          <div class="field"><label class="lbl">往路 搭乗日</label><input type="date" id="dDateOut"></div>
+          <div class="field"><label class="lbl">復路 搭乗日</label><input type="date" id="dDateRet"></div>
+        </div>
+        <div class="hint">国内線は往路・復路それぞれのシーズンで計算し合算します（ANA公式ルール）。</div>
+      </div>
+    </div>
+
+    <div class="card"><div class="result" id="dResult"></div></div>
+  </section>
+
+  <!-- ============ 国際線 ============ -->
+  <section id="intl" style="display:none">
+    <div class="card">
+      <div class="field"><label class="lbl">目的地の選び方</label>
+        <div class="seg" id="intlMode"><button class="on" data-m="country">国・地域から選ぶ</button><button data-m="zone">ゾーンから選ぶ</button></div>
+      </div>
+      <div class="field" id="intlCountryBox"><label class="lbl">目的地（国・都市）</label><select id="intlCountry"></select></div>
+      <div class="field" id="intlZoneBox" style="display:none"><label class="lbl">ゾーン</label><select id="intlZone"></select></div>
+      <div class="zinfo" id="intlZoneInfo"></div>
+
+      <div class="field" style="margin-top:16px"><label class="lbl">座席クラス</label><select id="intlClass"></select></div>
+      <div class="field"><label class="lbl">旅程</label>
+        <div class="seg" id="intlTrip"><button class="on" data-t="rt">往復</button><button data-t="ow">片道</button></div>
+      </div>
+      <div class="field" id="iDateRTBox">
+        <div class="row2">
+          <div class="field"><label class="lbl">往路 日本出発日</label><input type="date" id="iDateOut"></div>
+          <div class="field"><label class="lbl">復路 搭乗日</label><input type="date" id="iDateRet"></div>
+        </div>
+        <div class="hint">国際線の必要マイルは往復セット。シーズンは「日本を出発する日（往路）」で決まります。</div>
+      </div>
+      <div class="field" id="iDateOWBox" style="display:none"><label class="lbl">日本出発日（任意・シーズン自動判定）</label><input type="date" id="iDate"></div>
+    </div>
+
+    <div class="card"><div class="result" id="iResult"></div></div>
+  </section>
+
+  <details class="info">
+    <summary>データの出典 / 更新方法</summary>
+    <div class="body">
+      <b>必要マイル数・区間・シーズン（出典）</b><br>
+      ・国内線：<a href="https://www.ana.co.jp/ja/jp/guide/amc/award/domestic/terms/" target="_blank" rel="noopener">ANA国内線特典航空券 シーズン・必要マイルチャート</a>（2024/10/27以降の改定後／離島4区間チャート含む）<br>
+      ・国際線：<a href="https://www.ana.co.jp/ja/jp/guide/amc/award/international/terms/" target="_blank" rel="noopener">ANA国際線特典航空券 シーズン・必要マイルチャート</a>（往復・ゾーン別）＋早見表PDF<br><br>
+      <b>シーズン日付の更新方法</b><br>
+      <code>index.html</code> をテキストエディタで開き、後半の <code>SEASON_DATA</code> の日付を書き換えれば最新化できます（年の追加も可能）。<br>
+      ・国内線 2025〜2026前半はANA公式どおり。2026後半〜2027は補完値（要確認）にしています。<br><br>
+      <b>区間判定について</b><br>
+      ANA公式の「区間別発着路線」に載っている路線は<b>公式区分</b>で判定（緑バッジ）。未掲載の路線は飛行距離からの<b>概算</b>判定（橙バッジ）です。正確な区間基本マイレージは「区間マイル入力」でも計算できます。<br><br>
+      最終的な必要マイル・空席はANA公式でご確認ください。
+    </div>
+  </details>
+
+  <footer>
+    必要マイル：ANA特典航空券チャート（国内線2024/10/27〜改定後・離島4区間／国際線往復）<br>
+    ※実際の予約・必要マイルはANA公式サイトで必ずご確認ください
+  </footer>
+</div>
+
+<script>
+/* =================================================================
+   ★ シーズン日付データ（ここを書き換えれば更新できます）★
+   ・国内線 2025年〜2026年前半：ANA公式ページの記載どおり
+   ・国内線 2026年後半〜2027年：ANA未掲載のため補完値（要確認・編集してください）
+   形式： ["MM-DD","MM-DD"] を年ごとに配列で記載
+   ================================================================= */
+const SEASON_DATA = {
+  domestic: {
+    2025: {
+      L:[["01-09","02-28"],["04-03","04-23"],["12-01","12-24"]],
+      R:[["03-01","03-13"],["05-13","07-17"],["08-25","11-30"]],
+      H:[["01-01","01-08"],["03-14","04-02"],["04-24","05-12"],["07-18","08-24"],["12-25","12-31"]]
+    },
+    2026: { /* 1/1〜5/18はANA公式。5/19以降は補完値（要確認） */
+      L:[["01-08","02-28"],["04-01","04-28"],["12-01","12-23"]],
+      R:[["03-01","03-12"],["05-12","07-17"],["08-31","11-30"]],
+      H:[["01-01","01-07"],["03-13","03-31"],["04-29","05-11"],["07-18","08-30"],["12-24","12-31"]]
+    },
+    2027: { /* すべて補完値（ANA未発表・要確認） */
+      L:[["01-07","02-28"]],
+      R:[["03-01","03-11"]],
+      H:[["01-01","01-06"],["03-12","03-31"]]
+    }
+  },
+  /* 国際線は zone6・7基準の参考値（ゾーンにより多少異なります） */
+  international: {
+    2026:{ L:[["01-06","02-28"]],
+      R:[["03-01","03-31"],["04-24","04-24"],["05-12","07-17"],["08-25","12-14"]],
+      H:[["01-01","01-03"],["04-25","05-11"],["07-18","08-24"],["12-15","12-31"]] },
+    2027:{ L:[["01-06","02-28"]], R:[["03-01","03-31"]], H:[["01-01","01-05"]] }
+  }
+};
+
+/* ===== 必要マイルチャート（ANA公式・改定後 2024/10/27〜）===== */
+// 国内線 1区間（片道）：区分 [L,R,H]
+const DOM1 = [
+  {max:300,  label:"0〜300マイル区間",      m:[6000,6500,9000]},
+  {max:800,  label:"301〜800マイル区間",    m:[7000,8500,10500]},
+  {max:1000, label:"801〜1,000マイル区間",  m:[8000,9500,12000]},
+  {max:2000, label:"1,001〜2,000マイル区間",m:[9500,10500,13000]}
+];
+// 沖縄離島4区間（全旅程＝那覇乗継往復）：区分 [L,R,H]
+const DOM4 = [
+  {min:601,  max:1600, label:"601〜1,600マイル",  m:[14000,17000,21000]},
+  {min:1601, max:2000, label:"1,601〜2,000マイル",m:[16000,19000,24000]},
+  {min:2001, max:4000, label:"2,001〜4,000マイル",m:[19000,21000,26000]}
+];
+
+/* ===== 空港データ（n:表示名, m:公式区分の照合名, r:地方, lat, lon, na:那覇, is:離島）===== */
+const AP = [
+ // 北海道
+ {n:"新千歳（札幌）",m:"札幌",r:"北海道",lat:42.78,lon:141.69},
+ {n:"函館",m:"函館",r:"北海道",lat:41.77,lon:140.82},
+ {n:"旭川",m:"旭川",r:"北海道",lat:43.67,lon:142.45},
+ {n:"釧路",m:"釧路",r:"北海道",lat:43.04,lon:144.19},
+ {n:"帯広",m:"帯広",r:"北海道",lat:42.73,lon:143.22},
+ {n:"女満別",m:"女満別",r:"北海道",lat:43.88,lon:144.16},
+ {n:"稚内",m:"稚内",r:"北海道",lat:45.40,lon:141.80},
+ {n:"オホーツク紋別",m:"紋別",r:"北海道",lat:44.30,lon:143.40},
+ {n:"根室中標津",m:"中標津",r:"北海道",lat:43.58,lon:144.96},
+ {n:"利尻",m:"利尻",r:"北海道",lat:45.24,lon:141.19},
+ // 東北
+ {n:"青森",m:"青森",r:"東北",lat:40.73,lon:140.69},
+ {n:"秋田",m:"秋田",r:"東北",lat:39.62,lon:140.22},
+ {n:"大館能代",m:"大館能代",r:"東北",lat:40.19,lon:140.37},
+ {n:"三沢",m:"三沢",r:"東北",lat:40.70,lon:141.37},
+ {n:"いわて花巻",m:"花巻",r:"東北",lat:39.43,lon:141.13},
+ {n:"仙台",m:"仙台",r:"東北",lat:38.14,lon:140.92},
+ {n:"山形",m:"山形",r:"東北",lat:38.41,lon:140.37},
+ {n:"庄内",m:"庄内",r:"東北",lat:38.81,lon:139.79},
+ // 関東
+ {n:"東京（羽田）",m:"東京",r:"関東",lat:35.55,lon:139.78},
+ {n:"東京（成田）",m:"東京",r:"関東",lat:35.76,lon:140.39},
+ {n:"八丈島",m:"八丈島",r:"関東",lat:33.12,lon:139.79},
+ // 中部・北陸
+ {n:"中部（名古屋）",m:"名古屋",r:"中部・北陸",lat:34.86,lon:136.81},
+ {n:"県営名古屋（小牧）",m:"名古屋",r:"中部・北陸",lat:35.25,lon:136.92},
+ {n:"新潟",m:"新潟",r:"中部・北陸",lat:37.96,lon:139.11},
+ {n:"小松",m:"小松",r:"中部・北陸",lat:36.39,lon:136.41},
+ {n:"富山",m:"富山",r:"中部・北陸",lat:36.65,lon:137.19},
+ {n:"能登",m:"能登",r:"中部・北陸",lat:37.29,lon:136.96},
+ {n:"静岡",m:"静岡",r:"中部・北陸",lat:34.80,lon:138.19},
+ {n:"信州まつもと",m:"松本",r:"中部・北陸",lat:36.17,lon:137.92},
+ // 近畿
+ {n:"大阪（伊丹）",m:"大阪",r:"近畿",lat:34.79,lon:135.44},
+ {n:"関西",m:"大阪",r:"近畿",lat:34.43,lon:135.23},
+ {n:"神戸",m:"大阪",r:"近畿",lat:34.63,lon:135.22},
+ {n:"南紀白浜",m:"白浜",r:"近畿",lat:33.66,lon:135.36},
+ // 中国
+ {n:"岡山",m:"岡山",r:"中国",lat:34.76,lon:133.85},
+ {n:"広島",m:"広島",r:"中国",lat:34.44,lon:132.92},
+ {n:"山口宇部",m:"宇部",r:"中国",lat:33.93,lon:131.28},
+ {n:"鳥取",m:"鳥取",r:"中国",lat:35.53,lon:134.17},
+ {n:"米子",m:"米子",r:"中国",lat:35.49,lon:133.24},
+ {n:"萩・石見",m:"萩・石見",r:"中国",lat:34.68,lon:131.79},
+ {n:"出雲",m:"出雲",r:"中国",lat:35.41,lon:132.89},
+ // 四国
+ {n:"高松",m:"高松",r:"四国",lat:34.21,lon:134.02},
+ {n:"松山",m:"松山",r:"四国",lat:33.83,lon:132.70},
+ {n:"徳島",m:"徳島",r:"四国",lat:34.13,lon:134.61},
+ {n:"高知",m:"高知",r:"四国",lat:33.55,lon:133.67},
+ // 九州
+ {n:"福岡",m:"福岡",r:"九州",lat:33.59,lon:130.45},
+ {n:"北九州",m:"北九州",r:"九州",lat:33.85,lon:131.03},
+ {n:"佐賀",m:"佐賀",r:"九州",lat:33.15,lon:130.30},
+ {n:"大分",m:"大分",r:"九州",lat:33.48,lon:131.74},
+ {n:"熊本",m:"熊本",r:"九州",lat:32.84,lon:130.86},
+ {n:"長崎",m:"長崎",r:"九州",lat:32.92,lon:129.91},
+ {n:"宮崎",m:"宮崎",r:"九州",lat:31.88,lon:131.45},
+ {n:"鹿児島",m:"鹿児島",r:"九州",lat:31.80,lon:130.72},
+ {n:"対馬",m:"対馬",r:"九州",lat:34.28,lon:129.33},
+ {n:"壱岐",m:"壱岐",r:"九州",lat:33.75,lon:129.78},
+ {n:"五島福江",m:"五島福江",r:"九州",lat:32.67,lon:128.83},
+ {n:"屋久島",m:"屋久島",r:"九州",lat:30.39,lon:130.66},
+ {n:"種子島",m:"種子島",r:"九州",lat:30.61,lon:130.99},
+ {n:"奄美大島",m:"奄美",r:"九州",lat:28.43,lon:129.71},
+ {n:"徳之島",m:"徳之島",r:"九州",lat:27.84,lon:128.88},
+ // 沖縄
+ {n:"那覇（沖縄）",m:"沖縄",r:"沖縄",lat:26.20,lon:127.65,na:true},
+ {n:"宮古",m:"宮古",r:"沖縄",lat:24.78,lon:125.30,is:true},
+ {n:"石垣",m:"石垣",r:"沖縄",lat:24.40,lon:124.25,is:true},
+ {n:"久米島",m:"久米島",r:"沖縄",lat:26.36,lon:126.71,is:true},
+ {n:"与那国",m:"与那国",r:"沖縄",lat:24.47,lon:122.98,is:true},
+ {n:"多良間",m:"多良間",r:"沖縄",lat:24.65,lon:124.68,is:true},
+ {n:"北大東",m:"北大東",r:"沖縄",lat:25.94,lon:131.33,is:true},
+ {n:"南大東",m:"南大東",r:"沖縄",lat:25.85,lon:131.26,is:true},
+ {n:"下地島",m:"下地島",r:"沖縄",lat:24.83,lon:125.14,is:true}
+];
+// ANA公式「区間別発着路線」オーバーライド（照合名ペア）。idx:0=0-300,2=801-1000,3=1001-2000
+const OVR = {0:[ ["東京","秋田"],["東京","庄内"],["東京","仙台"],["東京","新潟"],["東京","八丈島"],["東京","富山"],["東京","小松"],["東京","能登"],["東京","名古屋"],["東京","大阪"],
+  ["大阪","萩・石見"],["大阪","松山"],["大阪","高知"],["大阪","福岡"],["大阪","大分"],["大阪","熊本"],["大阪","宮崎"],
+  ["名古屋","新潟"],["名古屋","松山"],
+  ["札幌","利尻"],["札幌","稚内"],["札幌","女満別"],["札幌","中標津"],["札幌","紋別"],["札幌","釧路"],["札幌","函館"],["札幌","青森"],["札幌","秋田"],
+  ["仙台","小松"],["福岡","対馬"],["福岡","五島福江"],["福岡","宮崎"],["長崎","壱岐"],["長崎","五島福江"],["長崎","対馬"],["沖縄","宮古"],["沖縄","石垣"] ],
+ 2:[ ["東京","沖縄"],["大阪","石垣"],["大阪","宮古"],["静岡","沖縄"],["名古屋","沖縄"],["名古屋","宮古"],["札幌","福岡"] ],
+ 3:[ ["東京","石垣"],["東京","宮古"],["名古屋","石垣"],["札幌","沖縄"],["沖縄","仙台"],["沖縄","新潟"] ]
+};
+const ovrSet = {}; for(const k in OVR){ovrSet[k]=new Set(OVR[k].map(p=>[p[0],p[1]].sort().join("|")));}
+
+/* ===== 国際線 ゾーン（往復マイル [L,R,H]・null=設定なし）===== */
+const ZONES = [
+ {name:"韓国・ロシア1（Zone2）", desc:"韓国・ロシア極東",
+  countries:["韓国（ソウル・釜山）","ロシア1（ウラジオストク・ユジノサハリンスク）"],
+  cls:{"エコノミー":[12000,15000,18000],"プレミアムエコノミー":null,"ビジネス":[25000,30000,33000],"ファースト":null}},
+ {name:"アジア1（Zone3）", desc:"中国・香港・台湾・マカオ",
+  countries:["中国（北京・上海・大連・青島・広州・成都 ほか）","香港","台湾（台北・高雄）","マカオ"],
+  cls:{"エコノミー":[17000,20000,23000],"プレミアムエコノミー":[30000,33000,36000],"ビジネス":[35000,40000,43000],"ファースト":null}},
+ {name:"アジア2（Zone4）", desc:"東南アジア・南アジア（インド等）",
+  countries:["タイ（バンコク）","シンガポール","マレーシア（クアラルンプール）","インドネシア（ジャカルタ）","フィリピン（マニラ・セブ）","ベトナム（ハノイ・ホーチミン）","カンボジア（プノンペン）","ミャンマー（ヤンゴン）","インド（デリー・ムンバイ・チェンナイ等）","ラオス","ブルネイ"],
+  cls:{"エコノミー":[30000,35000,38000],"プレミアムエコノミー":[46000,51000,54000],"ビジネス":[55000,60000,63000],"ファースト":[105000,105000,114000]}},
+ {name:"ハワイ（Zone5）", desc:"ハワイ",
+  countries:["ハワイ（ホノルル・コナ）"],
+  cls:{"エコノミー":[35000,40000,43000],"プレミアムエコノミー":[53000,58000,61000],"ビジネス":[80000,85000,90000],"ファースト":[120000,140000,160000]}},
+ {name:"北米（Zone6）", desc:"アメリカ本土・カナダ・メキシコ",
+  countries:["アメリカ本土（ロサンゼルス・サンフランシスコ・ニューヨーク・シカゴ・ワシントン・シアトル・ヒューストン ほか）","カナダ（バンクーバー・トロント）","メキシコ（メキシコシティ）"],
+  cls:{"エコノミー":[40000,50000,55000],"プレミアムエコノミー":[62000,72000,77000],"ビジネス":[100000,105000,165000],"ファースト":[150000,170000,200000]}},
+ {name:"欧州・ロシア2（Zone7）", desc:"ヨーロッパ・ロシア西部",
+  countries:["イギリス（ロンドン）","フランス（パリ）","ドイツ（フランクフルト・ミュンヘン・デュッセルドルフ）","イタリア（ミラノ・ローマ）","スペイン（マドリード・バルセロナ）","オランダ（アムステルダム）","ベルギー（ブリュッセル）","オーストリア（ウィーン）","スイス","北欧（ストックホルム・ヘルシンキ 等）","ロシア2（モスクワ）"],
+  cls:{"エコノミー":[45000,55000,60000],"プレミアムエコノミー":[67000,77000,82000],"ビジネス":[110000,115000,120000],"ファースト":[165000,190000,220000]}},
+ {name:"オセアニア（Zone10）", desc:"オーストラリア・ニュージーランド",
+  countries:["オーストラリア（シドニー・パース）","ニュージーランド（オークランド）"],
+  cls:{"エコノミー":[37000,45000,50000],"プレミアムエコノミー":[54000,62000,67000],"ビジネス":[65000,75000,80000],"ファースト":null}}
+];
+
+const SFULL={L:"ローシーズン",R:"レギュラーシーズン",H:"ハイシーズン"};
+const KEYS=["L","R","H"], KIDX={L:0,R:1,H:2};
+const fmt=n=>n.toLocaleString("ja-JP");
+// 復路が往路より前ならエラー文を返す（YYYY-MM-DD文字列比較）。同日はOK
+function tripDateError(outV,retV){
+  if(outV&&retV&&retV<outV)
+    return `<div class="note warn">復路（${retV}）が往路（${outV}）より前です。復路は往路と同じ日か、それ以降を選んでください</div>`;
+  return "";
+}
+
+/* ---- 距離・区分 ---- */
+function hav(a,b){const R=3958.8,toR=Math.PI/180;
+  const dLat=(b.lat-a.lat)*toR,dLon=(b.lon-a.lon)*toR;
+  const s=Math.sin(dLat/2)**2+Math.cos(a.lat*toR)*Math.cos(b.lat*toR)*Math.sin(dLon/2)**2;
+  return Math.round(2*R*Math.asin(Math.min(1,Math.sqrt(s))));}
+function distIdx(mi){return mi<=300?0:mi<=800?1:mi<=1000?2:mi<=2000?3:4;}
+function band1(a,b){ // {idx,label,dist,official}
+  if(a===b)return null;
+  const key=[a.m,b.m].sort().join("|");
+  for(const k of [0,2,3]){ if(ovrSet[k].has(key)) return {idx:k,label:DOM1[k].label,dist:hav(a,b),official:true}; }
+  // 公式リストの3区分に無ければ301〜800（その他）か、距離で判定（短距離ローカル便等の救済）
+  const di=distIdx(hav(a,b));
+  const idx = (di===4)?4 : di; // 距離区分をそのまま採用（301-800含む）
+  if(idx===4) return {idx:4,label:"2,000マイル超",dist:hav(a,b),official:false};
+  return {idx, label:DOM1[idx].label, dist:hav(a,b), official:false};
+}
+function band4(totalMi){for(const b of DOM4){if(totalMi>=b.min&&totalMi<=b.max)return {...b};}
+  return totalMi<601?{...DOM4[0],under:true}:null;}
+
+/* ---- シーズン判定 ---- */
+function detectSeason(kind,dateStr){
+  if(!dateStr)return {key:null,status:"none"};
+  const d=new Date(dateStr+"T00:00:00"),y=d.getFullYear(),t=SEASON_DATA[kind][y];
+  if(!t)return {key:null,status:"unknown"};
+  for(const k of KEYS)for(const[s,e]of t[k]){
+    if(d>=new Date(`${y}-${s}T00:00:00`)&&d<=new Date(`${y}-${e}T23:59:59`))return {key:k,status:"ok"};}
+  return {key:null,status:"outside"};
+}
+function stag(k){return `<span class="tag tag${k}">${SFULL[k]}</span>`;}
+
+/* ---- 共通描画 ---- */
+function renderSeasons(miles,activeKey,naText){
+  return `<div class="seasons">`+KEYS.map((k,i)=>{
+    const v=miles?miles[i]:null, isNA=(v==null);
+    return `<div class="scard ${k} ${activeKey===k?'active':''} ${isNA?'na':''}">
+      <div class="sname">${k}</div><div class="sfull">${SFULL[k]}</div>
+      ${isNA?`<div class="mval">${naText||"設定なし"}</div>`:`<div class="mval">${fmt(v)}</div><div class="munit">マイル</div>`}
+    </div>`;}).join("")+`</div>`;
+}
+function seasonNote(det){
+  if(det.status==="ok")return `<div class="note">搭乗日は <b>${SFULL[det.key]}（${det.key}）</b> ＝ ハイライトの金額</div>`;
+  if(det.status==="outside")return `<div class="note warn">この搭乗日はシーズン収録範囲外です。3区分を手動でご確認ください</div>`;
+  if(det.status==="unknown")return `<div class="note warn">この年のシーズンは未収録です（SEASON_DATAに追記できます）</div>`;
+  return `<div class="note">搭乗日を入力すると該当シーズンを自動でハイライトします</div>`;
+}
+function bandBadge(b){return b.official?`<span class="ofcl">公式区分</span>`:`<span class="ofcl approx">距離から概算</span>`;}
+
+/* ================= 国内線 ================= */
+const dom={mode:"direct",trip:"ow"};
+function fillSel(sel,list){sel.innerHTML="";const byR={};list.forEach((ap,i)=>{(byR[ap.r]=byR[ap.r]||[]).push(i);});
+  for(const r in byR){const og=document.createElement("optgroup");og.label=r;
+    byR[r].forEach(i=>{const o=document.createElement("option");o.value=i;o.textContent=list[i].n;og.appendChild(o);});sel.appendChild(og);}}
+function initDom(){
+  const dFrom=document.getElementById("dFrom"),dTo=document.getElementById("dTo");
+  fillSel(dFrom,AP);fillSel(dTo,AP);
+  dFrom.value=AP.findIndex(a=>a.n==="東京（羽田）");dTo.value=AP.findIndex(a=>a.n==="大阪（伊丹）");
+  // island selects
+  const iMain=document.getElementById("iMain"),iIsland=document.getElementById("iIsland");
+  fillSel(iMain,AP.filter(a=>a.r!=="沖縄")); // 本土側（沖縄以外）
+  // iMain options値はAPフィルタindexになるので別管理
+  iMain.innerHTML="";const mains=AP.map((a,i)=>({a,i})).filter(x=>x.a.r!=="沖縄");
+  const byR={};mains.forEach(x=>{(byR[x.a.r]=byR[x.a.r]||[]).push(x);});
+  for(const r in byR){const og=document.createElement("optgroup");og.label=r;byR[r].forEach(x=>{const o=document.createElement("option");o.value=x.i;o.textContent=x.a.n;og.appendChild(o);});iMain.appendChild(og);}
+  iMain.value=AP.findIndex(a=>a.n==="東京（羽田）");
+  iIsland.innerHTML="";AP.forEach((a,i)=>{if(a.is){const o=document.createElement("option");o.value=i;o.textContent=a.n;iIsland.appendChild(o);}});
+  iIsland.value=AP.findIndex(a=>a.n==="石垣");
+
+  document.getElementById("domMode").onclick=e=>{const b=e.target.closest("button");if(!b)return;dom.mode=b.dataset.m;
+    [...e.currentTarget.children].forEach(x=>x.classList.toggle("on",x===b));
+    document.getElementById("domDirect").style.display=dom.mode==="direct"?"":"none";
+    document.getElementById("domIsland").style.display=dom.mode==="island"?"":"none";
+    document.getElementById("domMileBox").style.display=dom.mode==="mile"?"":"none";
+    renderDom();};
+  document.getElementById("dTrip").onclick=e=>{const b=e.target.closest("button");if(!b)return;dom.trip=b.dataset.t;
+    [...e.currentTarget.children].forEach(x=>x.classList.toggle("on",x===b));
+    document.getElementById("dDateOWBox").style.display=dom.trip==="ow"?"":"none";
+    document.getElementById("dDateRTBox").style.display=dom.trip==="rt"?"":"none";
+    renderDom();};
+  ["dFrom","dTo","iMain","iIsland","dMile","dDate","dDateOut","dDateRet"].forEach(id=>{
+    const el=document.getElementById(id);el.oninput=renderDom;el.onchange=renderDom;});
+  renderDom();
+}
+// 直行・1区間の片道/往復描画
+function renderDirectLike(a,b,band,routeTxt){
+  const out=[];
+  out.push(`<div class="route">${routeTxt}</div>`);
+  if(band.idx===4){return `<div class="route">${routeTxt}</div><div class="note warn">2,000マイルを超えるため直行1区間チャート対象外です。「沖縄離島（那覇乗継）」や乗継をご検討ください</div>`;}
+  out.push(`<div class="band">区分：${band.label}　/　区間距離 約${fmt(band.dist)}マイル ${bandBadge(band)}</div>`);
+  const miles=DOM1[band.idx].m;
+  if(dom.trip==="ow"){
+    const det=detectSeason("domestic",document.getElementById("dDate").value);
+    out.push(renderSeasons(miles,det.key));out.push(seasonNote(det));
+  }else{
+    const ov=document.getElementById("dDateOut").value, rv=document.getElementById("dDateRet").value;
+    const de=tripDateError(ov,rv); if(de){out.push(de);return out.join("");}
+    const so=detectSeason("domestic",ov);
+    const sr=detectSeason("domestic",rv);
+    if(so.status==="ok"&&sr.status==="ok"){
+      const m1=miles[KIDX[so.key]],m2=miles[KIDX[sr.key]];
+      out.push(`<div class="breakdown">
+        <div class="brow"><div class="lside">往路 ${stag(so.key)}<small>${band.label}</small></div><div class="rside">${fmt(m1)}</div></div>
+        <div class="brow"><div class="lside">復路 ${stag(sr.key)}<small>${band.label}</small></div><div class="rside">${fmt(m2)}</div></div>
+        <div class="brow total"><div class="lside">往復 合計</div><div class="rside">${fmt(m1+m2)} マイル</div></div></div>`);
+      out.push(`<div class="subnote">国内線は往路・復路それぞれのシーズンで計算し合算（ANA公式ルール）</div>`);
+    }else{
+      out.push(renderSeasons(miles.map(v=>v*2),null,))
+      out.push(`<div class="note">往路・復路の搭乗日を入れると、それぞれのシーズンで正確に計算します（上は片道×2の目安）</div>`);
+    }
+  }
+  return out.join("");
+}
+function renderDom(){
+  const box=document.getElementById("dResult");
+  document.getElementById("dDateRet").min=document.getElementById("dDateOut").value||"";
+  if(dom.mode==="direct"){
+    const a=AP[+document.getElementById("dFrom").value],b=AP[+document.getElementById("dTo").value];
+    if(a===b){box.innerHTML=`<div class="note warn">出発と到着が同じ空港です</div>`;return;}
+    const band=band1(a,b);
+    box.innerHTML=renderDirectLike(a,b,band,`${a.n} ⇄ ${b.n}`);
+  }else if(dom.mode==="mile"){
+    const mi=parseFloat(document.getElementById("dMile").value);
+    if(isNaN(mi)){box.innerHTML=`<div class="route">区間マイル数を入力してください</div>`;return;}
+    if(mi>2000){box.innerHTML=`<div class="note warn">2,000マイル超は直行1区間チャート対象外です</div>`;return;}
+    const idx=distIdx(mi),band={idx,label:DOM1[idx].label,dist:Math.round(mi),official:true};
+    box.innerHTML=renderDirectLike(null,null,{...band,official:false},`区間マイル：${fmt(Math.round(mi))}マイル`).replace('距離から概算','入力値');
+  }else{ // island 那覇乗継
+    renderIsland(box);
+  }
+}
+function renderIsland(box){
+  const main=AP[+document.getElementById("iMain").value],isl=AP[+document.getElementById("iIsland").value];
+  const naha=AP.find(a=>a.na);
+  const seg1=band1(main,naha),seg2=band1(naha,isl);
+  if(!seg1||!seg2){box.innerHTML=`<div class="note warn">空港を選び直してください</div>`;return;}
+  const out=[`<div class="route">${main.n} ⇄ 那覇（沖縄） ⇄ ${isl.n}</div>`];
+  out.push(`<div class="band">本土↔那覇：${seg1.label}（約${fmt(seg1.dist)}mi）${bandBadge(seg1)}　/　那覇↔離島：${seg2.label}（約${fmt(seg2.dist)}mi）${bandBadge(seg2)}</div>`);
+  const m1=DOM1[seg1.idx].m,m2=DOM1[seg2.idx].m; // [L,R,H]
+  if(dom.trip==="ow"){
+    // 2区間（同日＝同一シーズン）
+    const det=detectSeason("domestic",document.getElementById("dDate").value);
+    const sumByS=KEYS.map((k,i)=>m1[i]+m2[i]);
+    out.push(renderSeasons(sumByS,det.key));
+    out.push(`<div class="breakdown" style="margin-top:10px">
+      <div class="brow"><div class="lside">${main.n}→那覇<small>${seg1.label}</small></div><div class="rside">${det.key?fmt(m1[KIDX[det.key]]):fmt(m1[1])+'〜'}</div></div>
+      <div class="brow"><div class="lside">那覇→${isl.n}<small>${seg2.label}</small></div><div class="rside">${det.key?fmt(m2[KIDX[det.key]]):fmt(m2[1])+'〜'}</div></div>
+      </div>`);
+    out.push(seasonNote(det));
+    out.push(`<div class="subnote">片道2区間＝各区間の必要マイルを合算（同日乗継は同一シーズン）</div>`);
+  }else{
+    // 往復4区間：方式A(1区間合算) vs 方式B(4区間チャート)
+    const ov=document.getElementById("dDateOut").value, rv=document.getElementById("dDateRet").value;
+    const de=tripDateError(ov,rv); if(de){box.innerHTML=out.join("")+de;return;}
+    const so=detectSeason("domestic",ov);
+    const sr=detectSeason("domestic",rv);
+    const totalDist=(seg1.dist+seg2.dist)*2;
+    const b4=band4(totalDist);
+    const okSeason=so.status==="ok"&&sr.status==="ok";
+    if(okSeason){
+      const aMiles=(m1[KIDX[so.key]]+m2[KIDX[so.key]])+(m1[KIDX[sr.key]]+m2[KIDX[sr.key]]);
+      let bMiles=null,bSeasonTxt="";
+      if(b4&&!b4.under){
+        if(so.key===sr.key){bMiles=b4.m[KIDX[so.key]];bSeasonTxt=SFULL[so.key];}
+        else{ // 混在：4区間チャートを各シーズン1/4ずつ加算（往路2区間=1/2, 復路2区間=1/2）
+          bMiles=Math.round(b4.m[KIDX[so.key]]/2 + b4.m[KIDX[sr.key]]/2);bSeasonTxt="往路/復路 各シーズン";}
+      }
+      const best = (bMiles!=null && bMiles<aMiles)?"B":"A";
+      out.push(`<div class="compare">
+        <div class="cbox ${best==='A'?'best':''}"><div class="ctit">1区間ずつ合算<br>（往復4区間）</div><div class="cval">${fmt(aMiles)}</div><div class="cunit">マイル</div>
+          <div class="csub">往路 ${stag(so.key)}<br>復路 ${stag(sr.key)}</div></div>
+        ${bMiles!=null?`<div class="cbox ${best==='B'?'best':''}"><div class="ctit">沖縄離島<br>4区間チャート</div><div class="cval">${fmt(bMiles)}</div><div class="cunit">マイル</div>
+          <div class="csub">全旅程 約${fmt(totalDist)}mi<br>${b4.label}・${bSeasonTxt}</div></div>`:
+          `<div class="cbox"><div class="ctit">4区間チャート</div><div class="cval na" style="font-size:16px;color:#b9c6d2">対象外</div><div class="csub">全旅程 約${fmt(totalDist)}mi</div></div>`}
+      </div>`);
+      out.push(`<div class="note">${best==='B'?'<b>4区間チャートがお得</b>です（那覇乗継往復）':'1区間合算の方が安く済みます'}</div>`);
+    }else{
+      out.push(`<div class="note">往路・復路の搭乗日を入れると、1区間合算と4区間チャートを比較してお得な方を表示します</div>`);
+      if(b4&&!b4.under){out.push(`<div class="subnote">参考：全旅程 約${fmt(totalDist)}マイル → ${b4.label}（4区間チャート）　L ${fmt(b4.m[0])} / R ${fmt(b4.m[1])} / H ${fmt(b4.m[2])}</div>`);}
+    }
+  }
+  box.innerHTML=out.join("");
+}
+
+/* ================= 国際線 ================= */
+const intl={mode:"country",trip:"rt",zoneIdx:0};
+function initIntl(){
+  const cSel=document.getElementById("intlCountry");
+  ZONES.forEach((z,zi)=>{const og=document.createElement("optgroup");og.label=z.name;
+    z.countries.forEach(c=>{const o=document.createElement("option");o.value=zi;o.textContent=c;og.appendChild(o);});cSel.appendChild(og);});
+  const zSel=document.getElementById("intlZone");
+  ZONES.forEach((z,zi)=>{const o=document.createElement("option");o.value=zi;o.textContent=z.name;zSel.appendChild(o);});
+  const clsSel=document.getElementById("intlClass");
+  ["エコノミー","プレミアムエコノミー","ビジネス","ファースト"].forEach(c=>{const o=document.createElement("option");o.textContent=c;clsSel.appendChild(o);});
+
+  document.getElementById("intlMode").onclick=e=>{const b=e.target.closest("button");if(!b)return;intl.mode=b.dataset.m;
+    [...e.currentTarget.children].forEach(x=>x.classList.toggle("on",x===b));
+    document.getElementById("intlCountryBox").style.display=intl.mode==="country"?"":"none";
+    document.getElementById("intlZoneBox").style.display=intl.mode==="zone"?"":"none";renderIntl();};
+  document.getElementById("intlTrip").onclick=e=>{const b=e.target.closest("button");if(!b)return;intl.trip=b.dataset.t;
+    [...e.currentTarget.children].forEach(x=>x.classList.toggle("on",x===b));
+    document.getElementById("iDateRTBox").style.display=intl.trip==="rt"?"":"none";
+    document.getElementById("iDateOWBox").style.display=intl.trip==="ow"?"":"none";renderIntl();};
+  ["intlCountry","intlZone","intlClass","iDate","iDateOut","iDateRet"].forEach(id=>{
+    const el=document.getElementById(id);el.oninput=renderIntl;el.onchange=renderIntl;});
+  renderIntl();
+}
+function curZone(){return intl.mode==="country"?+document.getElementById("intlCountry").value:+document.getElementById("intlZone").value;}
+function renderIntl(){
+  document.getElementById("iDateRet").min=document.getElementById("iDateOut").value||"";
+  const zi=curZone(),z=ZONES[zi];
+  document.getElementById("intlZoneInfo").innerHTML=`選択中：<b>${z.name}</b>（${z.desc}）<small>含まれる国・地域：${z.countries.join(' / ')}</small>`;
+  const cls=document.getElementById("intlClass").value, base=z.cls[cls];
+  const box=document.getElementById("iResult");
+  const out=[`<div class="route">日本 ⇄ ${z.name}</div><div class="band">${cls}クラス　/　${intl.trip==="rt"?"往復":"片道"}</div>`];
+  if(!base){box.innerHTML=out.join("")+renderSeasons(null,null,"設定なし")+`<div class="subnote">このゾーン・クラスの特典航空券はチャートに設定がありません</div>`;return;}
+  const miles = intl.trip==="rt"?base:base.map(v=>Math.round(v/2));
+  if(intl.trip==="rt"){
+    const ov=document.getElementById("iDateOut").value, rv=document.getElementById("iDateRet").value;
+    const de=tripDateError(ov,rv); if(de){box.innerHTML=out.join("")+de;return;}
+    const so=detectSeason("international",ov);
+    const sr=detectSeason("international",rv);
+    if(so.status==="ok"&&sr.status==="ok"){
+      const m1=Math.round(base[KIDX[so.key]]/2), m2=Math.round(base[KIDX[sr.key]]/2);
+      out.push(`<div class="breakdown">
+        <div class="brow"><div class="lside">往路 ${stag(so.key)}<small>往復${fmt(base[KIDX[so.key]])} ÷2</small></div><div class="rside">${fmt(m1)}</div></div>
+        <div class="brow"><div class="lside">復路 ${stag(sr.key)}<small>往復${fmt(base[KIDX[sr.key]])} ÷2</small></div><div class="rside">${fmt(m2)}</div></div>
+        <div class="brow total"><div class="lside">往復 合計</div><div class="rside">${fmt(m1+m2)} マイル</div></div></div>`);
+      out.push(`<div class="subnote">国際線往復は「往路シーズンの往復÷2」＋「復路シーズンの往復÷2」で合算（ANA公式ルール）。往路・復路が同一シーズンなら往復チャート値と一致します。</div>`);
+    }else{
+      out.push(renderSeasons(miles,null));
+      out.push(`<div class="note">往路・復路の搭乗日を入れると、それぞれのシーズンで正確に計算します（上は往路・復路が同一シーズンの往復値）</div>`);
+      out.push(`<div class="subnote">シーズン期間はzone6・7基準の参考値。ゾーンにより多少異なります。</div>`);
+    }
+  }else{
+    const det=detectSeason("international",document.getElementById("iDate").value);
+    out.push(renderSeasons(miles,det.key));
+    out.push(seasonNote(det));
+    out.push(`<div class="subnote">片道＝往復の半額（ANA片道特典の目安）</div>`);
+  }
+  box.innerHTML=out.join("");
+}
+
+/* ================= タブ ================= */
+document.querySelector(".tabs").onclick=e=>{const b=e.target.closest(".tab");if(!b)return;
+  document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("active",t===b));
+  document.getElementById("dom").style.display=b.dataset.tab==="dom"?"":"none";
+  document.getElementById("intl").style.display=b.dataset.tab==="intl"?"":"none";};
+
+initDom();initIntl();
+</script>
+</body>
+</html>
