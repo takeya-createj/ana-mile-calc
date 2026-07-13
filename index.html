@@ -65,6 +65,11 @@
   .bigval .bl{font-size:12px;font-weight:700;color:var(--ink-soft);margin-bottom:4px}
   .bigval .bv{font-size:30px;font-weight:900;color:var(--ana-blue)}
   .bigval .bu{font-size:12px;color:#8aa0b2;font-weight:700;margin-left:2px}
+  .atable{width:100%;border-collapse:collapse;font-size:12px}
+  .atable th,.atable td{border-bottom:1px solid #e8eef4;padding:6px 9px;text-align:left;vertical-align:top}
+  .atable th{background:#eef4fb;color:var(--ink-soft);font-weight:700;white-space:nowrap}
+  .atable td.c{color:var(--ana-blue);font-weight:700;white-space:nowrap}
+  .atable td.rem{color:#8aa0b2;font-size:11px}
 
   .result .route{font-size:14px;color:var(--ink);font-weight:700;margin-bottom:3px}
   .result .band{font-size:12.5px;font-weight:600;color:var(--ana-blue);margin-bottom:14px}
@@ -220,6 +225,19 @@
 
     <div class="card"><div class="result" id="iResult"></div></div>
   </section>
+
+  <details class="info">
+    <summary>✈️ 提携で使える航空会社の一覧（拠点の国）</summary>
+    <div class="body">
+      提携（スターアライアンス）チャートで利用できる航空会社と、その拠点（国）の一覧です。ANAマイレージクラブ会員はこれらの便を特典利用できます（2026年7月時点）。<br><br>
+      <b>① スターアライアンス加盟 25社（ANA提携）</b>
+      <div style="overflow-x:auto"><table class="atable"><thead><tr><th>航空会社</th><th>拠点（国）</th><th>備考</th></tr></thead><tbody><tr><td>全日本空輸（ANA）</td><td class="c">日本</td><td class="rem">日本のハブ</td></tr><tr><td>エアカナダ</td><td class="c">カナダ</td><td class="rem"></td></tr><tr><td>中国国際航空（エアチャイナ）</td><td class="c">中国</td><td class="rem"></td></tr><tr><td>エア・インディア</td><td class="c">インド</td><td class="rem">ヴィスタラを統合</td></tr><tr><td>ニュージーランド航空</td><td class="c">ニュージーランド</td><td class="rem"></td></tr><tr><td>エーゲ航空</td><td class="c">ギリシャ</td><td class="rem"></td></tr><tr><td>アシアナ航空</td><td class="c">韓国</td><td class="rem">2026/12/16 脱退予定</td></tr><tr><td>オーストリア航空</td><td class="c">オーストリア</td><td class="rem"></td></tr><tr><td>アビアンカ航空</td><td class="c">コロンビア</td><td class="rem"></td></tr><tr><td>ブリュッセル航空</td><td class="c">ベルギー</td><td class="rem"></td></tr><tr><td>コパ航空</td><td class="c">パナマ</td><td class="rem"></td></tr><tr><td>クロアチア航空</td><td class="c">クロアチア</td><td class="rem"></td></tr><tr><td>エジプト航空</td><td class="c">エジプト</td><td class="rem"></td></tr><tr><td>エチオピア航空</td><td class="c">エチオピア</td><td class="rem"></td></tr><tr><td>エバー航空</td><td class="c">台湾</td><td class="rem"></td></tr><tr><td>LOTポーランド航空</td><td class="c">ポーランド</td><td class="rem"></td></tr><tr><td>ルフトハンザ ドイツ航空</td><td class="c">ドイツ</td><td class="rem"></td></tr><tr><td>深圳航空</td><td class="c">中国</td><td class="rem"></td></tr><tr><td>シンガポール航空</td><td class="c">シンガポール</td><td class="rem"></td></tr><tr><td>南アフリカ航空</td><td class="c">南アフリカ</td><td class="rem"></td></tr><tr><td>スイス インターナショナル エアラインズ</td><td class="c">スイス</td><td class="rem"></td></tr><tr><td>TAPポルトガル航空</td><td class="c">ポルトガル</td><td class="rem"></td></tr><tr><td>タイ国際航空</td><td class="c">タイ</td><td class="rem"></td></tr><tr><td>ターキッシュ エアラインズ</td><td class="c">トルコ</td><td class="rem"></td></tr><tr><td>ユナイテッド航空</td><td class="c">米国</td><td class="rem"></td></tr></tbody></table></div>
+      <small>※SAS（スカンジナビア航空）は2024/8末に脱退（現スカイチーム）。アシアナ航空は2026/12/16に脱退予定です。</small><br><br>
+      <b>② ANA個別提携 9社（スターアライアンス以外）</b>
+      <div style="overflow-x:auto"><table class="atable"><thead><tr><th>航空会社</th><th>拠点（国）</th><th>備考</th></tr></thead><tbody><tr><td>エティハド航空</td><td class="c">UAE</td><td class="rem"></td></tr><tr><td>ガルーダ・インドネシア航空</td><td class="c">インドネシア</td><td class="rem">JALでも利用可</td></tr><tr><td>ベトナム航空</td><td class="c">ベトナム</td><td class="rem"></td></tr><tr><td>フィリピン航空</td><td class="c">フィリピン</td><td class="rem"></td></tr><tr><td>ヴァージン アトランティック航空</td><td class="c">英国</td><td class="rem">ネット予約不可（要電話）</td></tr><tr><td>ヴァージン・オーストラリア</td><td class="c">オーストラリア</td><td class="rem"></td></tr><tr><td>マカオ航空</td><td class="c">マカオ</td><td class="rem">ネット予約不可（要電話）</td></tr><tr><td>ユーロウィングス</td><td class="c">ドイツ</td><td class="rem">ネット予約不可（要電話）</td></tr><tr><td>オリンピック航空</td><td class="c">ギリシャ</td><td class="rem"></td></tr></tbody></table></div>
+      <small>2026/4〜ITAエアウェイズ、2025/11〜ルフトハンザ シティ航空もマイル積算対象に追加。出典：航空会社アライアンス・提携一覧（2026-07-08）。</small>
+    </div>
+  </details>
 
   <details class="info">
     <summary>データの出典 / 更新方法</summary>
