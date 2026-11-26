@@ -1,0 +1,830 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="data:," />
+    <title>ANA特典航空券 必要マイル計算</title>
+    <style>
+      :root{
+        --bg:#f2f5f9; --card:#ffffff; --ink:#16233a; --ink2:#4a5a75; --line:#d7e0ec;
+        --navy:#0b2a5b; --sky:#0072bc; --sky-soft:#e3f0fa; --accent:#e8590c;
+        --ok:#0c7a43; --ok-bg:#e5f4ec; --warn:#b45309; --warn-bg:#fdf0e0; --bad:#b3261e; --bad-bg:#fbe9e7;
+        --chip:#eef3f9; --result-bg:#0b2a5b; --result-ink:#ffffff;
+      }
+      @media (prefers-color-scheme: dark){
+        :root{
+          --bg:#0d1420; --card:#16202f; --ink:#e8eef7; --ink2:#a7b6cc; --line:#2b3a52;
+          --navy:#7db3e8; --sky:#4da3e0; --sky-soft:#1b2f47; --accent:#f08c4a;
+          --ok:#5fc98e; --ok-bg:#143527; --warn:#eda94f; --warn-bg:#3a2a12; --bad:#ef8a84; --bad-bg:#3d1d1a;
+          --chip:#1d2c42; --result-bg:#123058; --result-ink:#ffffff;
+        }
+      }
+      *{ box-sizing:border-box; }
+      html{ -webkit-text-size-adjust:100%; }
+      body{
+        margin:0; background:var(--bg); color:var(--ink);
+        font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","Noto Sans JP","Yu Gothic UI","Yu Gothic",Meiryo,sans-serif;
+        line-height:1.65; font-size:16px;
+      }
+      button, select, input{ min-height:2.25rem; font:inherit; }
+      .wrap{ max-width:920px; margin:0 auto; padding:20px 14px 56px; }
+      header{ margin:6px 0 18px; }
+      h1{ font-size:clamp(22px,5.4vw,32px); line-height:1.3; margin:0 0 8px; color:var(--navy); letter-spacing:.01em; }
+      .lead{ color:var(--ink2); margin:0; font-size:15px; }
+      .lead b{ color:var(--ink); }
+      section.card{
+        background:var(--card); border:1px solid var(--line); border-radius:14px;
+        padding:18px 16px 20px; margin:0 0 18px;
+      }
+      h2{
+        font-size:19px; margin:0 0 4px; padding-left:10px; border-left:5px solid var(--sky);
+        line-height:1.4;
+      }
+      .sub{ color:var(--ink2); font-size:13.5px; margin:0 0 14px; }
+      .row{ margin:0 0 14px; }
+      .row:last-child{ margin-bottom:0; }
+      .lab{ font-size:13px; font-weight:700; color:var(--ink2); margin:0 0 6px; letter-spacing:.04em; }
+      .seg{ display:flex; flex-wrap:wrap; gap:6px; }
+      .seg button{
+        border:1px solid var(--line); background:var(--chip); color:var(--ink);
+        border-radius:9px; padding:6px 13px; cursor:pointer; font-size:15px; min-height:2.5rem;
+      }
+      .seg button.active{ background:var(--sky); border-color:var(--sky); color:#fff; font-weight:700; }
+      .seg button:disabled{ opacity:.38; cursor:not-allowed; }
+      .seg.small button{ font-size:13.5px; padding:4px 10px; min-height:2.25rem; }
+      select{
+        width:100%; border:1px solid var(--line); border-radius:9px; background:var(--card); color:var(--ink);
+        padding:6px 10px; font-size:16px;
+      }
+      .grid2{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+      @media (max-width:560px){ .grid2{ grid-template-columns:1fr; } }
+      .result{
+        background:var(--result-bg); color:var(--result-ink); border-radius:12px;
+        padding:16px; margin-top:16px;
+      }
+      .result .route{ font-size:14px; opacity:.85; margin:0 0 2px; }
+      .result .big{ font-size:clamp(30px,8vw,44px); font-weight:800; line-height:1.15; margin:0; font-variant-numeric:tabular-nums; }
+      .result .big small{ font-size:16px; font-weight:600; }
+      .result .per{ font-size:14px; margin:4px 0 0; opacity:.9; }
+      .totalbar{
+        margin-top:12px; background:rgba(255,255,255,.13); border-radius:9px; padding:9px 12px;
+        font-size:15px; display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap;
+      }
+      .totalbar b{ font-size:19px; font-variant-numeric:tabular-nums; }
+      .notice{
+        border-radius:10px; padding:11px 13px; font-size:14px; margin-top:14px;
+      }
+      .notice.warn{ background:var(--warn-bg); color:var(--warn); }
+      .notice.info{ background:var(--sky-soft); color:var(--ink); }
+      .notice p{ margin:0; }
+      .fuel{ margin-top:16px; border-top:1px dashed var(--line); padding-top:14px; }
+      .fuel h3{ font-size:15.5px; margin:0 0 8px; }
+      .fuel p{ font-size:14px; margin:0 0 8px; color:var(--ink2); }
+      .fuel p b{ color:var(--ink); }
+      .tier{ margin:0 0 10px; }
+      .tier .tlab{ display:inline-block; font-size:12.5px; font-weight:800; border-radius:999px; padding:2px 10px; margin:0 0 6px; }
+      .t-none .tlab{ background:var(--ok-bg); color:var(--ok); }
+      .t-high .tlab{ background:var(--bad-bg); color:var(--bad); }
+      .t-unk .tlab{ background:var(--chip); color:var(--ink2); }
+      .chips{ display:flex; flex-wrap:wrap; gap:5px; }
+      .chips span{ background:var(--chip); border-radius:999px; padding:3px 10px; font-size:13px; }
+      .compare{
+        margin-top:14px; border:1px solid var(--line); border-radius:10px; padding:11px 13px; font-size:14px;
+      }
+      .compare h3{ font-size:14px; margin:0 0 6px; color:var(--ink2); }
+      .compare table{ width:100%; border-collapse:collapse; font-variant-numeric:tabular-nums; }
+      .compare td{ padding:3px 0; }
+      .compare td:last-child{ text-align:right; font-weight:700; white-space:nowrap; }
+      details.ref{ background:var(--card); border:1px solid var(--line); border-radius:14px; padding:4px 16px; margin:0 0 18px; }
+      details.ref summary{ cursor:pointer; font-weight:700; padding:12px 0; min-height:2.75rem; display:flex; align-items:center; }
+      details.ref .body{ padding:0 0 16px; font-size:14px; }
+      details.ref h3{ font-size:15.5px; margin:16px 0 6px; }
+      details.ref h3:first-child{ margin-top:2px; }
+      details.ref p{ margin:0 0 8px; color:var(--ink2); }
+      details.ref p b, details.ref li b{ color:var(--ink); }
+      details.ref ul{ margin:0 0 8px; padding-left:20px; color:var(--ink2); }
+      table.plain{ width:100%; border-collapse:collapse; font-size:13.5px; margin:0 0 10px; font-variant-numeric:tabular-nums; }
+      table.plain th, table.plain td{ border:1px solid var(--line); padding:5px 8px; text-align:left; vertical-align:top; }
+      table.plain th{ background:var(--chip); font-weight:700; }
+      .seasonbox{ margin-top:14px; font-size:13.5px; background:var(--sky-soft); border-radius:10px; padding:11px 13px; }
+      .seasonbox h3{ font-size:14px; margin:0 0 6px; }
+      .seasonbox table{ width:100%; border-collapse:collapse; font-variant-numeric:tabular-nums; }
+      .seasonbox td{ padding:2px 0; vertical-align:top; }
+      .seasonbox td:first-child{ font-weight:700; white-space:nowrap; padding-right:10px; }
+      footer{ font-size:13px; color:var(--ink2); }
+      footer p{ margin:0 0 8px; }
+      footer a{ color:var(--sky); }
+      .src{ font-size:12.5px; }
+      .src li{ margin-bottom:3px; }
+      a{ color:var(--sky); }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <h1>ANA特典航空券 必要マイル計算</h1>
+        <p class="lead">ANAマイルで特典航空券に交換するときの必要マイル数を、ANA公式チャートで計算します。<b>国内線</b>と<b>国際線（ANA便／提携航空会社）</b>に対応。提携社はスターアライアンス加盟社が中心で、燃油サーチャージの水準も航空会社ごとに確認できます。</p>
+      </header>
+
+      <!-- ============ 国内線 ============ -->
+      <section class="card" id="domSec">
+        <h2>国内線</h2>
+        <p class="sub">必要マイルは「区間の距離帯 × シーズン（L／R／H）」で決まります（片道・1区間あたり）。プレミアムクラスは特典航空券の対象外です。</p>
+
+        <div class="row">
+          <p class="lab">区間の決め方</p>
+          <div class="seg" id="domModeSeg">
+            <button type="button" data-v="airport" class="active">空港から選ぶ</button>
+            <button type="button" data-v="band">距離帯を直接選ぶ</button>
+          </div>
+        </div>
+
+        <div class="row" id="domAirportRow">
+          <div class="grid2">
+            <div>
+              <p class="lab">出発地</p>
+              <select id="domFrom"></select>
+            </div>
+            <div>
+              <p class="lab">到着地</p>
+              <select id="domTo"></select>
+            </div>
+          </div>
+        </div>
+
+        <div class="row" id="domBandRow" hidden>
+          <p class="lab">距離帯（区間マイレージ）</p>
+          <div class="seg" id="domBandSeg">
+            <button type="button" data-v="0">0〜300マイル</button>
+            <button type="button" data-v="1" class="active">301〜800マイル</button>
+            <button type="button" data-v="2">801〜1,000マイル</button>
+            <button type="button" data-v="3">1,001〜2,000マイル</button>
+          </div>
+        </div>
+
+        <div class="row">
+          <p class="lab">シーズン（搭乗日で決まります）</p>
+          <div class="seg" id="domSeasonSeg">
+            <button type="button" data-v="L">ロー（L）</button>
+            <button type="button" data-v="R" class="active">レギュラー（R）</button>
+            <button type="button" data-v="H">ハイ（H）</button>
+          </div>
+        </div>
+
+        <div class="row">
+          <p class="lab">片道／往復</p>
+          <div class="seg" id="domTripSeg">
+            <button type="button" data-v="one">片道</button>
+            <button type="button" data-v="round" class="active">往復</button>
+          </div>
+        </div>
+
+        <div class="row">
+          <p class="lab">人数</p>
+          <div class="seg" id="domPaxSeg">
+            <button type="button" data-v="1" class="active">1人</button>
+            <button type="button" data-v="2">2人</button>
+            <button type="button" data-v="3">3人</button>
+            <button type="button" data-v="4">4人</button>
+            <button type="button" data-v="5">5人</button>
+          </div>
+        </div>
+
+        <div id="domResult"></div>
+      </section>
+
+      <!-- ============ 国際線 ============ -->
+      <section class="card" id="intlSec">
+        <h2>国際線</h2>
+        <p class="sub">日本発着が対象です。ANA便はゾーン×シーズン×クラス、提携社はゾーン×クラス（<b>シーズン区分なし</b>）で決まります。どちらも2025年6月24日から片道でも交換できます。</p>
+
+        <div class="row">
+          <p class="lab">利用する航空会社</p>
+          <div class="seg" id="modeSeg">
+            <button type="button" data-v="ana" class="active">ANA便</button>
+            <button type="button" data-v="partner">提携航空会社</button>
+          </div>
+        </div>
+
+        <div class="row">
+          <p class="lab">地域から絞り込む</p>
+          <div class="seg small" id="regionSeg">
+            <button type="button" data-v="all" class="active">すべて</button>
+            <button type="button" data-v="asia">アジア</button>
+            <button type="button" data-v="hawaii">ハワイ</button>
+            <button type="button" data-v="namerica">北米</button>
+            <button type="button" data-v="europe">ヨーロッパ</button>
+            <button type="button" data-v="oceania">オセアニア</button>
+            <button type="button" data-v="latin">中南米</button>
+            <button type="button" data-v="middleeast">中東</button>
+            <button type="button" data-v="africa">アフリカ</button>
+          </div>
+        </div>
+
+        <div class="row">
+          <p class="lab">目的地（日本発）</p>
+          <select id="destSel"></select>
+        </div>
+
+        <div class="row">
+          <p class="lab">クラス</p>
+          <div class="seg" id="clsSeg">
+            <button type="button" data-v="Y" class="active">エコノミー</button>
+            <button type="button" data-v="PY" id="clsPyBtn">プレミアムエコノミー</button>
+            <button type="button" data-v="C">ビジネス</button>
+            <button type="button" data-v="F">ファースト</button>
+          </div>
+        </div>
+
+        <div class="row" id="seasonRow">
+          <p class="lab">シーズン（搭乗日で決まります）</p>
+          <div class="seg" id="seasonSeg">
+            <button type="button" data-v="L">ロー（L）</button>
+            <button type="button" data-v="R" class="active">レギュラー（R）</button>
+            <button type="button" data-v="H">ハイ（H）</button>
+          </div>
+        </div>
+
+        <div class="row" id="ptypeRow" hidden>
+          <p class="lab">旅程タイプ（提携社）</p>
+          <div class="seg" id="ptypeSeg">
+            <button type="button" data-v="1A" class="active">1-A（国際線の往復2区間のみ／国内乗継OK）</button>
+            <button type="button" data-v="1B">1-B（それ以外の旅程）</button>
+          </div>
+        </div>
+
+        <div class="row">
+          <p class="lab">片道／往復</p>
+          <div class="seg" id="tripSeg">
+            <button type="button" data-v="one">片道</button>
+            <button type="button" data-v="round" class="active">往復</button>
+          </div>
+        </div>
+
+        <div class="row">
+          <p class="lab">人数</p>
+          <div class="seg" id="paxSeg">
+            <button type="button" data-v="1" class="active">1人</button>
+            <button type="button" data-v="2">2人</button>
+            <button type="button" data-v="3">3人</button>
+            <button type="button" data-v="4">4人</button>
+            <button type="button" data-v="5">5人</button>
+          </div>
+        </div>
+
+        <div id="intlResult"></div>
+        <div id="seasonBox"></div>
+        <div id="fuelBox"></div>
+        <div id="compareBox"></div>
+      </section>
+
+      <!-- ============ 参考情報 ============ -->
+      <details class="ref">
+        <summary>チャートの見方・ゾーン区分・対象外の行き先</summary>
+        <div class="body">
+          <h3>ANA便のゾーン区分（日本＝Zone 1）</h3>
+          <table class="plain">
+            <tr><th>ゾーン</th><th>方面</th><th>主な都市</th></tr>
+            <tr><td>Zone 2</td><td>韓国・ロシア1</td><td>ソウル、ウラジオストク</td></tr>
+            <tr><td>Zone 3</td><td>アジア1</td><td>北京、上海、広州、香港、台北、マニラ など</td></tr>
+            <tr><td>Zone 4</td><td>アジア2</td><td>シンガポール、バンコク、ハノイ、ジャカルタ、デリー など</td></tr>
+            <tr><td>Zone 5</td><td>ハワイ</td><td>ホノルル</td></tr>
+            <tr><td>Zone 6</td><td>北米</td><td>ロサンゼルス、ニューヨーク、シカゴ、バンクーバー、メキシコシティ など</td></tr>
+            <tr><td>Zone 7</td><td>欧州・ロシア2</td><td>ロンドン、パリ、フランクフルト、イスタンブール、モスクワ など</td></tr>
+            <tr><td>Zone 10</td><td>オセアニア</td><td>シドニー、パース</td></tr>
+          </table>
+          <p>ANA便に中南米・アフリカ・中東方面の設定はありません。これらの方面は提携航空会社のチャート（Zone 8＝アフリカ・中東、Zone 9＝中南米）で計算します。提携社では<b>グアムがアジア1（Zone 3）</b>、サイパン・パラオなどのミクロネシアがオセアニア（Zone 10）に入るなど、ANA便と区分が一部異なります。</p>
+
+          <h3>提携社の旅程タイプ（1-A／1-B）</h3>
+          <ul>
+            <li><b>1-A</b>：国際線の往復2区間のみの旅程、または往復2区間＋日本国内のみの乗り継ぎ。</li>
+            <li><b>1-B</b>：1-Aに当たらない旅程（海外での乗り継ぎを組み込む、複数都市を回る等）。1-Aより必要マイルが多くなります。</li>
+            <li>アフリカ・中東（Zone 8）と中南米（Zone 9）は1-Aに設定がなく、1-Bのみです。</li>
+            <li>提携社に<b>プレミアムエコノミーの設定はありません</b>。また、提携社どうしを自由に組み合わせられるのはスターアライアンス加盟社で、非加盟の提携社はその1社の運航便のみで旅程を組む形になります。</li>
+          </ul>
+
+          <h3>特典では行けない・現在使えない行き先</h3>
+          <ul>
+            <li><b>ウランバートル（モンゴル）</b>：ANAの提携航空会社にモンゴル方面の会社がなく、特典航空券では行けません。</li>
+            <li><b>ヌメア（ニューカレドニア）／ポートビラ（バヌアツ）</b>：運航会社がANAの提携先ではないため、特典では行けません。</li>
+            <li><b>ウラジオストク／モスクワ</b>：チャート上のゾーンには含まれますが、現在は運航休止中のため実質利用できません。</li>
+            <li>このほか、目的地として選べても、提携社の就航状況や特典枠の空席によっては予約できない場合があります。</li>
+          </ul>
+
+          <h3>計算の前提</h3>
+          <ul>
+            <li>片道の必要マイルは、往復チャートの半分です（ANA便・提携社とも、2025年6月24日以降の予約・発券分）。</li>
+            <li>ANA便の往復で往路と復路のシーズンが異なる場合、実際は「往路の往復マイル÷2＋復路の往復マイル÷2」で計算します。このツールでは1つのシーズンで往復を計算しているので、シーズンをまたぐ旅程では片道ずつ確認してください。</li>
+            <li>小児も大人と同じマイル数です。座席を使わない幼児は別扱いになります。</li>
+            <li>必要マイルのほかに、燃油サーチャージ（該当する場合）・諸税・空港使用料などが現金でかかります。</li>
+            <li>国内線の2区間利用（乗り継ぎ）は、1区間ごとの必要マイルの合算です。</li>
+          </ul>
+        </div>
+      </details>
+
+      <footer>
+        <p>数値は2026年11月26日時点で確認したANA公式チャート（2025年6月24日改定分）に基づきます。燃油サーチャージ額は2026年11月1日〜12月31日発券分（日本発）のANA公式金額で、2か月ごとに改定されます。マイル数・金額は変更されることがあるため、予約前にANA公式サイトで最新情報をご確認ください。提携社の燃油区分は発券実例をもとにした目安で、路線・時期により変わる場合があります。</p>
+        <ul class="src">
+          <li>出典：<a href="https://www.ana.co.jp/ja/jp/guide/amc/award/international/terms/?tabitem=asw-tab__item-box-5" target="_blank" rel="noopener">ANA国際線特典航空券 シーズン・必要マイルチャート（ANA公式）</a></li>
+          <li>出典：<a href="https://www.ana.co.jp/guide/amc/award/international/usage/images/mileage_chart_int_oneway_en_250325.pdf" target="_blank" rel="noopener">ANA国際線 片道必要マイルチャート（ANA公式PDF）</a></li>
+          <li>出典：<a href="https://www.ana.co.jp/ja/jp/guide/plan/charge/fuelsurcharge/?lfpeid=4WUSb0dq9iv2&lfmaid=1000198585-3" target="_blank" rel="noopener">燃油特別付加運賃について（ANA公式）</a></li>
+        </ul>
+      </footer>
+    </div>
+
+    <script>
+    "use strict";
+    var fmt = function(n){ return n.toLocaleString("ja-JP"); };
+    var yen = function(n){ return "¥" + fmt(n); };
+
+    /* ================= データ ================= */
+    // ANA便：日本発・片道マイル [L, R, H]（2025年6月24日改定チャート）
+    var ANA_CHART = {
+      z2:  { Y:[6000,7500,12000],   PY:null,                  C:[18000,20500,25000],  F:null },
+      z3:  { Y:[8500,10000,15000],  PY:[15000,16500,23500],   C:[24000,26500,32500],  F:null },
+      z4:  { Y:[15000,17500,25000], PY:[23000,25500,35500],   C:[40000,42500,47500],  F:[57500,60000,85500] },
+      z5:  { Y:[17500,20000,32500], PY:[26500,29000,44000],   C:[40000,42500,67500],  F:[60000,70000,120000] },
+      z6:  { Y:[20000,25000,36000], PY:[31000,36000,50500],   C:[50000,52500,82500],  F:[75000,85000,150000] },
+      z7:  { Y:[22500,27500,39000], PY:[33500,38500,53500],   C:[55000,57500,90000],  F:[82500,95000,165000] },
+      z10: { Y:[18500,22500,32500], PY:[27000,31000,44000],   C:[40000,45000,67500],  F:null }
+    };
+    // 提携社：日本発・往復マイル（シーズン区分なし）。片道は半分
+    var PARTNER_RT = {
+      "1A": {
+        z2:{Y:15000,C:30000,F:45000},  z3:{Y:20000,C:40000,F:60000},   z4:{Y:35000,C:60000,F:105000},
+        z5:{Y:40000,C:85000,F:140000}, z6:{Y:50000,C:110000,F:170000}, z7:{Y:55000,C:115000,F:190000},
+        z8:null, z9:null, z10:{Y:45000,C:85000,F:135000}
+      },
+      "1B": {
+        z2:{Y:18000,C:33000,F:54000},  z3:{Y:23000,C:43000,F:69000},   z4:{Y:38000,C:63000,F:114000},
+        z5:{Y:43000,C:89000,F:151000}, z6:{Y:55000,C:117000,F:187000}, z7:{Y:62000,C:121000,F:207000},
+        z8:{Y:100000,C:185000,F:290000}, z9:{Y:115000,C:195000,F:327000}, z10:{Y:50000,C:91000,F:150000}
+      }
+    };
+    var ZONE_NAME = {
+      z2:"Zone 2（韓国・ロシア1）", z3:"Zone 3（アジア1）", z4:"Zone 4（アジア2）", z5:"Zone 5（ハワイ）",
+      z6:"Zone 6（北米）", z7:"Zone 7（欧州・ロシア2）", z8:"Zone 8（アフリカ・中東）", z9:"Zone 9（中南米）",
+      z10:"Zone 10（オセアニア）"
+    };
+    // 国内線：片道・1区間 [L, R, H]
+    var DOM_CHART = [
+      { label:"0〜300マイル",     v:[6000,6500,9000] },
+      { label:"301〜800マイル",   v:[7000,8500,10500] },
+      { label:"801〜1,000マイル", v:[8000,9500,12000] },
+      { label:"1,001〜2,000マイル", v:[9500,10500,13000] }
+    ];
+    // ANA便 燃油サーチャージ（日本発・片道1区間・2026年11〜12月発券分）
+    var FUEL_ANA = {
+      kr:  { amt:7100,  label:"日本〜韓国・ロシア（ウラジオストク）" },
+      ea:  { amt:15100, label:"日本〜東アジア（中国・台湾・香港・マカオ）" },
+      ph:  { amt:21500, label:"日本〜ベトナム・フィリピン・グアム・パラオ・モンゴル" },
+      th:  { amt:32000, label:"日本〜タイ・シンガポール・マレーシア・ミャンマー・カンボジア" },
+      hw:  { amt:38500, label:"日本〜ハワイ・インド・インドネシア" },
+      mex: { amt:38500, label:"日本〜メキシコシティ（成田線の例外金額）" },
+      lng: { amt:62000, label:"日本〜欧州・北米（ハワイ除く）・中東・オセアニア・アフリカ・中南米" }
+    };
+    // 提携社の燃油水準（発券実例ベース）
+    var FUEL_NONE = ["シンガポール航空","ニュージーランド航空","ベトナム航空","ユナイテッド航空","エア・カナダ","エバー航空","ターキッシュ エアラインズ","アシアナ航空","タイ国際航空","中国国際航空","エチオピア航空","アビアンカ航空","コパ航空"];
+    var FUEL_HIGH = ["ルフトハンザ ドイツ航空","スイス インターナショナル エアラインズ","オーストリア航空","ブリュッセル航空"];
+    var FUEL_UNK  = ["LOTポーランド航空","TAPポルトガル航空","エジプト航空","エア・インディア","南アフリカ航空","クロアチア航空","深セン航空","ガルーダ・インドネシア航空","エティハド航空","ITAエアウェイズ","ヴァージン・オーストラリア"];
+
+    var REGIONS = { asia:"アジア", hawaii:"ハワイ", namerica:"北米", europe:"ヨーロッパ", oceania:"オセアニア", latin:"中南米", middleeast:"中東", africa:"アフリカ" };
+    // az: ANA便ゾーン（null=ANA便では行けない） / pz: 提携社ゾーン / fuel: ANA便の燃油グループ
+    var DESTS = [
+      // アジア
+      { n:"ソウル（仁川・金浦）", r:"asia", az:"z2", pz:"z2", fuel:"kr", ana:1 },
+      { n:"北京", r:"asia", az:"z3", pz:"z3", fuel:"ea", ana:1 },
+      { n:"上海", r:"asia", az:"z3", pz:"z3", fuel:"ea", ana:1 },
+      { n:"広州", r:"asia", az:"z3", pz:"z3", fuel:"ea", ana:1 },
+      { n:"深セン", r:"asia", az:"z3", pz:"z3", fuel:"ea", ana:1 },
+      { n:"成都", r:"asia", az:"z3", pz:"z3", fuel:"ea", ana:1 },
+      { n:"杭州", r:"asia", az:"z3", pz:"z3", fuel:"ea", ana:1 },
+      { n:"厦門", r:"asia", az:"z3", pz:"z3", fuel:"ea", ana:1 },
+      { n:"大連", r:"asia", az:"z3", pz:"z3", fuel:"ea", ana:1 },
+      { n:"青島", r:"asia", az:"z3", pz:"z3", fuel:"ea", ana:1 },
+      { n:"瀋陽", r:"asia", az:"z3", pz:"z3", fuel:"ea", ana:1 },
+      { n:"武漢", r:"asia", az:"z3", pz:"z3", fuel:"ea", ana:1 },
+      { n:"香港", r:"asia", az:"z3", pz:"z3", fuel:"ea", ana:1 },
+      { n:"台北", r:"asia", az:"z3", pz:"z3", fuel:"ea", ana:1 },
+      { n:"マニラ", r:"asia", az:"z3", pz:"z3", fuel:"ph", ana:1 },
+      { n:"ハノイ", r:"asia", az:"z4", pz:"z4", fuel:"ph", ana:1 },
+      { n:"ホーチミン", r:"asia", az:"z4", pz:"z4", fuel:"ph", ana:1 },
+      { n:"バンコク", r:"asia", az:"z4", pz:"z4", fuel:"th", ana:1 },
+      { n:"シンガポール", r:"asia", az:"z4", pz:"z4", fuel:"th", ana:1 },
+      { n:"クアラルンプール", r:"asia", az:"z4", pz:"z4", fuel:"th", ana:1 },
+      { n:"ヤンゴン", r:"asia", az:"z4", pz:"z4", fuel:"th", ana:1 },
+      { n:"プノンペン", r:"asia", az:"z4", pz:"z4", fuel:"th", ana:1 },
+      { n:"ジャカルタ", r:"asia", az:"z4", pz:"z4", fuel:"hw", ana:1 },
+      { n:"デリー", r:"asia", az:"z4", pz:"z4", fuel:"hw", ana:1 },
+      { n:"ムンバイ", r:"asia", az:"z4", pz:"z4", fuel:"hw", ana:1 },
+      { n:"チェンナイ", r:"asia", az:"z4", pz:"z4", fuel:"hw", ana:1 },
+      { n:"グアム", r:"asia", az:null, pz:"z3", fuel:null, ana:0 },
+      { n:"ダッカ", r:"asia", az:null, pz:"z4", fuel:null, ana:0 },
+      { n:"カトマンズ", r:"asia", az:null, pz:"z4", fuel:null, ana:0 },
+      { n:"コロンボ", r:"asia", az:null, pz:"z4", fuel:null, ana:0 },
+      { n:"マレ（モルディブ）", r:"asia", az:null, pz:"z4", fuel:null, ana:0 },
+      // ハワイ
+      { n:"ホノルル", r:"hawaii", az:"z5", pz:"z5", fuel:"hw", ana:1 },
+      // 北米
+      { n:"ロサンゼルス", r:"namerica", az:"z6", pz:"z6", fuel:"lng", ana:1 },
+      { n:"サンフランシスコ", r:"namerica", az:"z6", pz:"z6", fuel:"lng", ana:1 },
+      { n:"サンノゼ", r:"namerica", az:"z6", pz:"z6", fuel:"lng", ana:1 },
+      { n:"シアトル", r:"namerica", az:"z6", pz:"z6", fuel:"lng", ana:1 },
+      { n:"シカゴ", r:"namerica", az:"z6", pz:"z6", fuel:"lng", ana:1 },
+      { n:"ヒューストン", r:"namerica", az:"z6", pz:"z6", fuel:"lng", ana:1 },
+      { n:"ワシントンD.C.", r:"namerica", az:"z6", pz:"z6", fuel:"lng", ana:1 },
+      { n:"ニューヨーク", r:"namerica", az:"z6", pz:"z6", fuel:"lng", ana:1 },
+      { n:"バンクーバー", r:"namerica", az:"z6", pz:"z6", fuel:"lng", ana:1 },
+      { n:"メキシコシティ", r:"namerica", az:"z6", pz:"z6", fuel:"mex", ana:1 },
+      { n:"デンバー", r:"namerica", az:null, pz:"z6", fuel:null, ana:0 },
+      { n:"ダラス・フォートワース", r:"namerica", az:null, pz:"z6", fuel:null, ana:0 },
+      { n:"ラスベガス", r:"namerica", az:null, pz:"z6", fuel:null, ana:0 },
+      { n:"フェニックス", r:"namerica", az:null, pz:"z6", fuel:null, ana:0 },
+      { n:"サンディエゴ", r:"namerica", az:null, pz:"z6", fuel:null, ana:0 },
+      { n:"ポートランド", r:"namerica", az:null, pz:"z6", fuel:null, ana:0 },
+      { n:"オースティン", r:"namerica", az:null, pz:"z6", fuel:null, ana:0 },
+      { n:"アトランタ", r:"namerica", az:null, pz:"z6", fuel:null, ana:0 },
+      { n:"マイアミ", r:"namerica", az:null, pz:"z6", fuel:null, ana:0 },
+      { n:"オーランド", r:"namerica", az:null, pz:"z6", fuel:null, ana:0 },
+      { n:"ボストン", r:"namerica", az:null, pz:"z6", fuel:null, ana:0 },
+      { n:"ミネアポリス", r:"namerica", az:null, pz:"z6", fuel:null, ana:0 },
+      { n:"デトロイト", r:"namerica", az:null, pz:"z6", fuel:null, ana:0 },
+      { n:"トロント", r:"namerica", az:null, pz:"z6", fuel:null, ana:0 },
+      { n:"モントリオール", r:"namerica", az:null, pz:"z6", fuel:null, ana:0 },
+      { n:"カルガリー", r:"namerica", az:null, pz:"z6", fuel:null, ana:0 },
+      { n:"カンクン", r:"namerica", az:null, pz:"z6", fuel:null, ana:0 },
+      // ヨーロッパ
+      { n:"ロンドン", r:"europe", az:"z7", pz:"z7", fuel:"lng", ana:1 },
+      { n:"パリ", r:"europe", az:"z7", pz:"z7", fuel:"lng", ana:1 },
+      { n:"フランクフルト", r:"europe", az:"z7", pz:"z7", fuel:"lng", ana:1 },
+      { n:"ミュンヘン", r:"europe", az:"z7", pz:"z7", fuel:"lng", ana:1 },
+      { n:"デュッセルドルフ", r:"europe", az:"z7", pz:"z7", fuel:"lng", ana:1 },
+      { n:"ブリュッセル", r:"europe", az:"z7", pz:"z7", fuel:"lng", ana:1 },
+      { n:"ウィーン", r:"europe", az:"z7", pz:"z7", fuel:"lng", ana:1 },
+      { n:"ミラノ", r:"europe", az:"z7", pz:"z7", fuel:"lng", ana:1 },
+      { n:"ストックホルム", r:"europe", az:"z7", pz:"z7", fuel:"lng", ana:1 },
+      { n:"イスタンブール", r:"europe", az:"z7", pz:"z7", fuel:"lng", ana:1 },
+      { n:"チューリッヒ", r:"europe", az:null, pz:"z7", fuel:null, ana:0 },
+      { n:"ジュネーブ", r:"europe", az:null, pz:"z7", fuel:null, ana:0 },
+      { n:"ベルリン", r:"europe", az:null, pz:"z7", fuel:null, ana:0 },
+      { n:"ハンブルク", r:"europe", az:null, pz:"z7", fuel:null, ana:0 },
+      { n:"ワルシャワ", r:"europe", az:null, pz:"z7", fuel:null, ana:0 },
+      { n:"リスボン", r:"europe", az:null, pz:"z7", fuel:null, ana:0 },
+      { n:"ポルト", r:"europe", az:null, pz:"z7", fuel:null, ana:0 },
+      { n:"マドリード", r:"europe", az:null, pz:"z7", fuel:null, ana:0 },
+      { n:"バルセロナ", r:"europe", az:null, pz:"z7", fuel:null, ana:0 },
+      { n:"アテネ", r:"europe", az:null, pz:"z7", fuel:null, ana:0 },
+      { n:"コペンハーゲン", r:"europe", az:null, pz:"z7", fuel:null, ana:0 },
+      { n:"オスロ", r:"europe", az:null, pz:"z7", fuel:null, ana:0 },
+      { n:"ヘルシンキ", r:"europe", az:null, pz:"z7", fuel:null, ana:0 },
+      { n:"ダブリン", r:"europe", az:null, pz:"z7", fuel:null, ana:0 },
+      { n:"プラハ", r:"europe", az:null, pz:"z7", fuel:null, ana:0 },
+      { n:"ブダペスト", r:"europe", az:null, pz:"z7", fuel:null, ana:0 },
+      { n:"ザグレブ", r:"europe", az:null, pz:"z7", fuel:null, ana:0 },
+      { n:"ローマ", r:"europe", az:null, pz:"z7", fuel:null, ana:0 },
+      { n:"ヴェネツィア", r:"europe", az:null, pz:"z7", fuel:null, ana:0 },
+      // オセアニア
+      { n:"シドニー", r:"oceania", az:"z10", pz:"z10", fuel:"lng", ana:1 },
+      { n:"パース", r:"oceania", az:"z10", pz:"z10", fuel:"lng", ana:1 },
+      { n:"メルボルン", r:"oceania", az:null, pz:"z10", fuel:null, ana:0 },
+      { n:"ブリスベン", r:"oceania", az:null, pz:"z10", fuel:null, ana:0 },
+      { n:"ケアンズ", r:"oceania", az:null, pz:"z10", fuel:null, ana:0 },
+      { n:"アデレード", r:"oceania", az:null, pz:"z10", fuel:null, ana:0 },
+      { n:"オークランド", r:"oceania", az:null, pz:"z10", fuel:null, ana:0 },
+      { n:"ウェリントン", r:"oceania", az:null, pz:"z10", fuel:null, ana:0 },
+      { n:"クライストチャーチ", r:"oceania", az:null, pz:"z10", fuel:null, ana:0 },
+      { n:"ナンディ（フィジー）", r:"oceania", az:null, pz:"z10", fuel:null, ana:0 },
+      { n:"パペーテ（タヒチ）", r:"oceania", az:null, pz:"z10", fuel:null, ana:0 },
+      { n:"サイパン", r:"oceania", az:null, pz:"z10", fuel:null, ana:0 },
+      { n:"パラオ（コロール）", r:"oceania", az:null, pz:"z10", fuel:null, ana:0 },
+      // 中南米（提携社 Zone 9）
+      { n:"サンパウロ", r:"latin", az:null, pz:"z9", fuel:null, ana:0 },
+      { n:"リオデジャネイロ", r:"latin", az:null, pz:"z9", fuel:null, ana:0 },
+      { n:"ブエノスアイレス", r:"latin", az:null, pz:"z9", fuel:null, ana:0 },
+      { n:"サンティアゴ", r:"latin", az:null, pz:"z9", fuel:null, ana:0 },
+      { n:"リマ", r:"latin", az:null, pz:"z9", fuel:null, ana:0 },
+      { n:"ボゴタ", r:"latin", az:null, pz:"z9", fuel:null, ana:0 },
+      { n:"パナマシティ", r:"latin", az:null, pz:"z9", fuel:null, ana:0 },
+      { n:"サンホセ（コスタリカ）", r:"latin", az:null, pz:"z9", fuel:null, ana:0 },
+      { n:"キト", r:"latin", az:null, pz:"z9", fuel:null, ana:0 },
+      { n:"グアテマラシティ", r:"latin", az:null, pz:"z9", fuel:null, ana:0 },
+      // 中東（提携社 Zone 8）
+      { n:"ドバイ", r:"middleeast", az:null, pz:"z8", fuel:null, ana:0 },
+      { n:"アブダビ", r:"middleeast", az:null, pz:"z8", fuel:null, ana:0 },
+      { n:"ドーハ", r:"middleeast", az:null, pz:"z8", fuel:null, ana:0 },
+      { n:"リヤド", r:"middleeast", az:null, pz:"z8", fuel:null, ana:0 },
+      { n:"マスカット", r:"middleeast", az:null, pz:"z8", fuel:null, ana:0 },
+      { n:"クウェート", r:"middleeast", az:null, pz:"z8", fuel:null, ana:0 },
+      // アフリカ（提携社 Zone 8）
+      { n:"カイロ", r:"africa", az:null, pz:"z8", fuel:null, ana:0 },
+      { n:"ヨハネスブルグ", r:"africa", az:null, pz:"z8", fuel:null, ana:0 },
+      { n:"ケープタウン", r:"africa", az:null, pz:"z8", fuel:null, ana:0 },
+      { n:"ナイロビ", r:"africa", az:null, pz:"z8", fuel:null, ana:0 },
+      { n:"アディスアベバ", r:"africa", az:null, pz:"z8", fuel:null, ana:0 },
+      { n:"ラゴス", r:"africa", az:null, pz:"z8", fuel:null, ana:0 },
+      { n:"アクラ", r:"africa", az:null, pz:"z8", fuel:null, ana:0 },
+      { n:"ダルエスサラーム", r:"africa", az:null, pz:"z8", fuel:null, ana:0 },
+      { n:"カサブランカ", r:"africa", az:null, pz:"z8", fuel:null, ana:0 },
+      { n:"マラケシュ", r:"africa", az:null, pz:"z8", fuel:null, ana:0 },
+      { n:"チュニス", r:"africa", az:null, pz:"z8", fuel:null, ana:0 },
+      { n:"アルジェ", r:"africa", az:null, pz:"z8", fuel:null, ana:0 },
+      { n:"ダカール", r:"africa", az:null, pz:"z8", fuel:null, ana:0 }
+    ];
+
+    // 2026年シーズン早見（ANA公式・日本発着）
+    var SEASON_2026 = {
+      asia:  { name:"アジア方面（Zone 2〜4）", L:"1/5〜2/13、4/1〜4/28、5/11〜6/30", R:"2/14〜3/31、7/1〜7/17、8/24〜12/20", H:"1/1〜1/4、4/29〜5/10、7/18〜8/23、12/21〜12/31" },
+      west:  { name:"北米・欧州方面（Zone 6・7）", L:"1/6〜2/28、4/1〜4/28", R:"1/4〜1/5、3/1〜3/31、5/10〜7/15、8/24〜12/18", H:"1/1〜1/3、4/29〜5/9、7/16〜8/23、12/19〜12/31" },
+      south: { name:"ハワイ・オセアニア方面（Zone 5・10）", L:"1/7〜2/28、4/1〜4/27、5/10〜5/31、7/1〜7/15", R:"1/4〜1/6、3/1〜3/31、6/1〜6/30、8/24〜12/18", H:"1/1〜1/3、4/28〜5/9、7/16〜8/23、12/19〜12/31" }
+    };
+    function seasonGroup(zone){
+      if(zone==="z2"||zone==="z3"||zone==="z4") return SEASON_2026.asia;
+      if(zone==="z6"||zone==="z7") return SEASON_2026.west;
+      return SEASON_2026.south;
+    }
+
+    /* ================= 国内線データ ================= */
+    var DOM_AIRPORTS = [
+      ["CTS","札幌（新千歳）"],["AKJ","旭川"],["KUH","釧路"],["HKD","函館"],["SDJ","仙台"],
+      ["HND","東京（羽田・成田）"],["KMQ","小松"],["NGO","名古屋（中部）"],["ITM","大阪（伊丹・関西）"],
+      ["OKJ","岡山"],["HIJ","広島"],["TAK","高松"],["MYJ","松山"],["FUK","福岡"],["KMJ","熊本"],
+      ["MYZ","宮崎"],["KOJ","鹿児島"],["NGS","長崎"],["OKA","那覇"],["SHM","宮古"],["ISG","石垣"]
+    ];
+    var DOM_AP_NAME = {};
+    DOM_AIRPORTS.forEach(function(a){ DOM_AP_NAME[a[0]] = a[1]; });
+    // 主要区間の距離帯（0:〜300 / 1:301〜800 / 2:801〜1,000 / 3:1,001〜2,000）
+    var PAIR_BAND = {};
+    function pb(a,b,band){ PAIR_BAND[[a,b].sort().join("-")] = band; }
+    // 東京発
+    pb("HND","SDJ",0); pb("HND","NGO",0); pb("HND","KMQ",0); pb("HND","ITM",0);
+    pb("HND","OKJ",1); pb("HND","TAK",1); pb("HND","HIJ",1); pb("HND","MYJ",1); pb("HND","CTS",1);
+    pb("HND","FUK",1); pb("HND","KMJ",1); pb("HND","MYZ",1); pb("HND","KOJ",1); pb("HND","NGS",1);
+    pb("HND","HKD",1); pb("HND","AKJ",1); pb("HND","KUH",1);
+    pb("HND","OKA",2); pb("HND","SHM",3); pb("HND","ISG",3);
+    // 大阪発
+    pb("ITM","TAK",0); pb("ITM","MYJ",0); pb("ITM","OKJ",0); pb("ITM","HIJ",0); pb("ITM","FUK",0);
+    pb("ITM","MYZ",0); pb("ITM","NGO",0); pb("ITM","KMQ",0);
+    pb("ITM","KMJ",1); pb("ITM","KOJ",1); pb("ITM","NGS",1); pb("ITM","CTS",1); pb("ITM","SDJ",1);
+    pb("ITM","OKA",1); pb("ITM","HKD",1);
+    pb("ITM","SHM",2); pb("ITM","ISG",2); pb("ITM","KUH",2);
+    // 福岡発
+    pb("FUK","KMJ",0); pb("FUK","MYZ",0); pb("FUK","KOJ",0); pb("FUK","NGS",0); pb("FUK","MYJ",0);
+    pb("FUK","TAK",0); pb("FUK","HIJ",0); pb("FUK","OKJ",0);
+    pb("FUK","NGO",1); pb("FUK","SDJ",1); pb("FUK","OKA",1); pb("FUK","SHM",1); pb("FUK","ISG",1);
+    pb("FUK","CTS",2);
+    // 札幌発
+    pb("CTS","HKD",0); pb("CTS","AKJ",0); pb("CTS","KUH",0);
+    pb("CTS","NGO",1); pb("CTS","OKA",3);
+    // 名古屋発
+    pb("NGO","SDJ",1); pb("NGO","KMJ",1); pb("NGO","MYZ",1); pb("NGO","KOJ",1); pb("NGO","NGS",1);
+    pb("NGO","HKD",1); pb("NGO","AKJ",1);
+    pb("NGO","OKA",2); pb("NGO","SHM",3); pb("NGO","ISG",3);
+    // 那覇発
+    pb("OKA","SHM",0); pb("OKA","ISG",0);
+    pb("OKA","KOJ",1); pb("OKA","KMJ",1); pb("OKA","HIJ",1); pb("OKA","MYJ",1); pb("OKA","TAK",1);
+    pb("OKA","SDJ",3);
+    // その他
+    pb("SDJ","ITM",1); pb("HIJ","OKA",1); pb("MYJ","OKA",1); pb("TAK","OKA",1);
+
+    /* ================= 状態と共通部品 ================= */
+    var S = {
+      domMode:"airport", domFrom:"HND", domTo:"CTS", domBand:1, domSeason:"R", domTrip:"round", domPax:1,
+      mode:"ana", region:"all", dest:31, cls:"Y", season:"R", trip:"round", pax:1, ptype:"1A"
+    };
+    var SEASON_IDX = { L:0, R:1, H:2 };
+    var SEASON_NAME = { L:"ローシーズン", R:"レギュラーシーズン", H:"ハイシーズン" };
+    var CLS_NAME = { Y:"エコノミー", PY:"プレミアムエコノミー", C:"ビジネス", F:"ファースト" };
+
+    function segWire(id, key, cb){
+      var el = document.getElementById(id);
+      el.addEventListener("click", function(e){
+        var b = e.target.closest("button");
+        if(!b || b.disabled) return;
+        S[key] = b.getAttribute("data-v");
+        segSet(id, S[key]);
+        if(cb) cb();
+        render();
+      });
+    }
+    function segSet(id, val){
+      var btns = document.getElementById(id).querySelectorAll("button");
+      for(var i=0;i<btns.length;i++) btns[i].classList.toggle("active", btns[i].getAttribute("data-v")===String(val));
+    }
+    function paxNum(v){ var n = parseInt(v,10); return (n>=1 && n<=5) ? n : 1; }
+    function totalBarHtml(pax, perPerson){
+      if(pax<=1) return "";
+      return '<div class="totalbar"><span>' + pax + '人分の合計</span><b>' + fmt(perPerson*pax) + ' マイル</b></div>';
+    }
+    function resultHtml(routeLabel, perPerson, tripLabel, pax, detail){
+      return '<div class="result"><p class="route">' + routeLabel + '</p>' +
+        '<p class="big">' + fmt(perPerson) + ' <small>マイル</small></p>' +
+        '<p class="per">1人あたり・' + tripLabel + '　' + detail + '</p>' +
+        totalBarHtml(pax, perPerson) + '</div>';
+    }
+
+    /* ================= 国内線 ================= */
+    function renderDom(){
+      var box = document.getElementById("domResult");
+      document.getElementById("domAirportRow").hidden = (S.domMode!=="airport");
+      document.getElementById("domBandRow").hidden = (S.domMode!=="band");
+      var band = null, routeLabel = "";
+      if(S.domMode==="airport"){
+        if(S.domFrom===S.domTo){
+          box.innerHTML = '<div class="notice warn"><p>出発地と到着地が同じになっています。別の空港を選んでください。</p></div>';
+          return;
+        }
+        var key = [S.domFrom, S.domTo].sort().join("-");
+        if(!(key in PAIR_BAND)){
+          box.innerHTML = '<div class="notice info"><p>' + DOM_AP_NAME[S.domFrom] + ' 〜 ' + DOM_AP_NAME[S.domTo] +
+            ' は主要区間の距離帯データにない組み合わせです。「距離帯を直接選ぶ」に切り替えて、区間マイレージ（ANA公式の区間基本マイレージ）から距離帯を選んでください。</p></div>';
+          return;
+        }
+        band = PAIR_BAND[key];
+        routeLabel = DOM_AP_NAME[S.domFrom] + " 〜 " + DOM_AP_NAME[S.domTo];
+      } else {
+        band = parseInt(S.domBand,10);
+        routeLabel = "距離帯から計算";
+      }
+      var per = DOM_CHART[band].v[SEASON_IDX[S.domSeason]];
+      var tripLabel = (S.domTrip==="round") ? "往復" : "片道";
+      if(S.domTrip==="round") per = per*2;
+      var pax = paxNum(S.domPax);
+      box.innerHTML = resultHtml(routeLabel, per, tripLabel, pax,
+        "距離帯：" + DOM_CHART[band].label + "／" + SEASON_NAME[S.domSeason]) +
+        '<div class="notice info"><p>国内線に燃油サーチャージはありません（空港の旅客施設使用料などは別途現金でかかります）。プレミアムクラスは特典航空券では取れません。有償航空券を買ったうえでのアップグレード特典（別制度）をご利用ください。</p></div>';
+    }
+
+    /* ================= 国際線 ================= */
+    function anaMiles(dest, cls, season, trip){
+      if(!dest.az) return null;
+      var row = ANA_CHART[dest.az][cls];
+      if(!row) return null;
+      var v = row[SEASON_IDX[season]];
+      return (trip==="round") ? v*2 : v;
+    }
+    function partnerMiles(dest, cls, ptype, trip){
+      if(cls==="PY") return null;
+      var row = PARTNER_RT[ptype][dest.pz];
+      var usedType = ptype;
+      if(!row){ row = PARTNER_RT["1B"][dest.pz]; usedType = "1B"; }
+      if(!row) return null;
+      var rt = row[cls];
+      return { miles: (trip==="round") ? rt : rt/2, usedType: usedType };
+    }
+    function currentDest(){ return DESTS[S.dest]; }
+
+    function renderIntl(){
+      var dest = currentDest();
+      var box = document.getElementById("intlResult");
+      var pax = paxNum(S.pax);
+      var tripLabel = (S.trip==="round") ? "往復" : "片道";
+      document.getElementById("seasonRow").hidden = (S.mode!=="ana");
+      document.getElementById("ptypeRow").hidden = (S.mode!=="partner");
+      document.getElementById("clsPyBtn").disabled = (S.mode==="partner");
+
+      if(S.mode==="ana"){
+        if(!dest.ana){
+          box.innerHTML = '<div class="notice warn"><p><b>' + dest.n + '</b> はANA便が就航していない行き先です。「提携航空会社」に切り替えると、' +
+            ZONE_NAME[dest.pz] + ' のチャートで計算できます。</p></div>';
+        } else {
+          var v = anaMiles(dest, S.cls, S.season, S.trip);
+          if(v===null){
+            box.innerHTML = '<div class="notice warn"><p>日本 〜 ' + dest.n + '（' + ZONE_NAME[dest.az] + '）の ' + CLS_NAME[S.cls] +
+              ' には設定がありません。ファーストクラスはアジア2・ハワイ・北米・欧州方面のみ、プレミアムエコノミーは韓国方面を除く方面に設定があります。</p></div>';
+          } else {
+            box.innerHTML = resultHtml("東京 〜 " + dest.n + "（ANA便）", v, tripLabel, pax,
+              ZONE_NAME[dest.az] + "／" + CLS_NAME[S.cls] + "／" + SEASON_NAME[S.season]);
+          }
+        }
+      } else {
+        if(S.cls==="PY"){
+          box.innerHTML = '<div class="notice warn"><p>提携航空会社の特典航空券に<b>プレミアムエコノミーの設定はありません</b>。エコノミー／ビジネス／ファーストから選んでください。</p></div>';
+        } else {
+          var pm = partnerMiles(dest, S.cls, S.ptype, S.trip);
+          var note = "";
+          if(pm.usedType!==S.ptype) note = '<div class="notice info"><p>この方面は1-Aに設定がないため、<b>1-B</b>のチャートで計算しています。</p></div>';
+          var srcNote = dest.ana ? "" : "（ANA便は就航なし・提携社のみ）";
+          box.innerHTML = resultHtml("東京 〜 " + dest.n + "（提携航空会社）", pm.miles, tripLabel, pax,
+            ZONE_NAME[dest.pz] + "／" + CLS_NAME[S.cls] + "／旅程タイプ " + pm.usedType.replace("1","1-") + "・シーズン区分なし" + srcNote) + note;
+        }
+      }
+      renderSeasonBox(dest);
+      renderFuel(dest, pax);
+      renderCompare(dest, pax, tripLabel);
+    }
+
+    function renderSeasonBox(dest){
+      var box = document.getElementById("seasonBox");
+      if(S.mode!=="ana" || !dest.ana){ box.innerHTML = ""; return; }
+      var g = seasonGroup(dest.az);
+      box.innerHTML = '<div class="seasonbox"><h3>2026年のシーズン早見：' + g.name + '</h3>' +
+        '<table><tr><td>ロー（L）</td><td>' + g.L + '</td></tr>' +
+        '<tr><td>レギュラー（R）</td><td>' + g.R + '</td></tr>' +
+        '<tr><td>ハイ（H）</td><td>' + g.H + '</td></tr></table>' +
+        '<p style="margin:6px 0 0;color:var(--ink2)">往路と復路でシーズンが違う場合は、片道ずつ計算して合算します。</p></div>';
+    }
+
+    function renderFuel(dest, pax){
+      var box = document.getElementById("fuelBox");
+      if(S.mode==="ana"){
+        if(!dest.ana || !dest.fuel){ box.innerHTML = ""; return; }
+        var f = FUEL_ANA[dest.fuel];
+        var sectors = (S.trip==="round") ? 2 : 1;
+        var perPerson = f.amt * sectors;
+        var total = perPerson * pax;
+        box.innerHTML = '<div class="fuel"><h3>燃油サーチャージ（ANA便・別途現金）</h3>' +
+          '<p>' + f.label + '：片道1区間 <b>' + yen(f.amt) + '</b>（2026年11〜12月発券分・日本発）</p>' +
+          '<p>' + (S.trip==="round" ? "往復" : "片道") + '1人あたり <b>' + yen(perPerson) + '</b>' +
+          (pax>1 ? '　／　' + pax + '人合計 <b>' + yen(total) + '</b>' : '') + '</p>' +
+          '<p>燃油サーチャージは発券日ベースで2か月ごとに改定されます。金額は目安で、諸税・空港使用料は別途かかります。乗り継ぎがある旅程では区間ごとに加算されます。</p></div>';
+      } else {
+        function chips(list){ return list.map(function(n){ return "<span>" + n + "</span>"; }).join(""); }
+        box.innerHTML = '<div class="fuel"><h3>燃油サーチャージ（提携航空会社）</h3>' +
+          '<p>ANAの提携社特典は、<b>運航会社が燃油サーチャージを徴収しない会社なら、諸税だけで発券できます</b>。ANA便では全路線でかかる燃油を避けられるのが、提携社を使う大きな利点です。金額ではなく、航空会社ごとの水準で見てください。</p>' +
+          '<div class="tier t-none"><span class="tlab">燃油サーチャージなし</span><div class="chips">' + chips(FUEL_NONE) + '</div></div>' +
+          '<div class="tier t-high"><span class="tlab">高い（運航会社のサーチャージが加算）</span><div class="chips">' + chips(FUEL_HIGH) + '</div></div>' +
+          '<p style="margin-bottom:6px">ルフトハンザグループ各社は、運航会社の燃油サーチャージがそのまま上乗せされ、欧州往復では数万円規模になることがあります。</p>' +
+          '<div class="tier t-unk"><span class="tlab">会社により異なる（要確認）</span><div class="chips">' + chips(FUEL_UNK) + '</div></div>' +
+          '<p>上記以外の提携社は一律には言えません。発券画面の合計額（マイル＋現金）で必ず確認してください。区分は発券実例をもとにした目安です。</p></div>';
+      }
+    }
+
+    function renderCompare(dest, pax, tripLabel){
+      var box = document.getElementById("compareBox");
+      if(S.cls==="PY"){
+        box.innerHTML = '<div class="compare"><h3>ANA便と提携社の比較</h3><p style="margin:0">提携社にプレミアムエコノミーの設定がないため、このクラスでは比較できません。</p></div>';
+        return;
+      }
+      var a = anaMiles(dest, S.cls, S.season, S.trip);
+      var pm = partnerMiles(dest, S.cls, "1A", S.trip);
+      function cell(v){ return (v===null || v===undefined) ? "設定なし" : fmt(v) + " マイル"; }
+      var aTxt = dest.ana ? cell(a) : "就航なし";
+      var pTxt = pm ? cell(pm.miles) + (pm.usedType==="1B" ? "（1-B）" : "（1-A）") : "設定なし";
+      box.innerHTML = '<div class="compare"><h3>ANA便と提携社の比較（' + tripLabel + '・1人あたり・' + CLS_NAME[S.cls] + '）</h3>' +
+        '<table><tr><td>ANA便（' + SEASON_NAME[S.season] + '）</td><td>' + aTxt + '</td></tr>' +
+        '<tr><td>提携航空会社（シーズンなし）</td><td>' + pTxt + '</td></tr></table>' +
+        '<p style="margin:6px 0 0;color:var(--ink2)">ANA便はシーズンで変動し、提携社は年中同じマイル数です。現金でかかる燃油サーチャージは、ANA便は全路線で必要、提携社は航空会社により無料〜高額と差があります。</p></div>';
+    }
+
+    function render(){ renderDom(); renderIntl(); }
+
+    /* ================= 初期化 ================= */
+    function fillDestSelect(){
+      var sel = document.getElementById("destSel");
+      sel.innerHTML = "";
+      var order = ["asia","hawaii","namerica","europe","oceania","latin","middleeast","africa"];
+      var firstIdx = -1;
+      order.forEach(function(rk){
+        if(S.region!=="all" && S.region!==rk) return;
+        var group = document.createElement("optgroup");
+        group.label = REGIONS[rk];
+        DESTS.forEach(function(d, i){
+          if(d.r!==rk) return;
+          var o = document.createElement("option");
+          o.value = i;
+          o.textContent = d.n + (d.ana ? "" : "（提携社のみ）");
+          group.appendChild(o);
+          if(firstIdx<0) firstIdx = i;
+        });
+        if(group.children.length) sel.appendChild(group);
+      });
+      var cur = DESTS[S.dest];
+      if(!cur || (S.region!=="all" && cur.r!==S.region)) S.dest = firstIdx;
+      sel.value = S.dest;
+    }
+
+    (function init(){
+      var fromSel = document.getElementById("domFrom");
+      var toSel = document.getElementById("domTo");
+      DOM_AIRPORTS.forEach(function(a){
+        var o1 = document.createElement("option"); o1.value = a[0]; o1.textContent = a[1]; fromSel.appendChild(o1);
+        var o2 = document.createElement("option"); o2.value = a[0]; o2.textContent = a[1]; toSel.appendChild(o2);
+      });
+      fromSel.value = S.domFrom; toSel.value = S.domTo;
+      fromSel.addEventListener("change", function(){ S.domFrom = fromSel.value; render(); });
+      toSel.addEventListener("change", function(){ S.domTo = toSel.value; render(); });
+
+      segWire("domModeSeg","domMode");
+      segWire("domBandSeg","domBand");
+      segWire("domSeasonSeg","domSeason");
+      segWire("domTripSeg","domTrip");
+      segWire("domPaxSeg","domPax");
+      segWire("modeSeg","mode");
+      segWire("regionSeg","region", function(){ fillDestSelect(); });
+      segWire("clsSeg","cls");
+      segWire("seasonSeg","season");
+      segWire("ptypeSeg","ptype");
+      segWire("tripSeg","trip");
+      segWire("paxSeg","pax");
+
+      fillDestSelect();
+      document.getElementById("destSel").addEventListener("change", function(){
+        S.dest = parseInt(this.value,10); render();
+      });
+      render();
+    })();
+    </script>
+  </body>
+</html>
