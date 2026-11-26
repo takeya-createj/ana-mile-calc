@@ -91,6 +91,16 @@
         font-size:15px; display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap;
       }
       .totalbar b{ font-size:19px; font-variant-numeric:tabular-nums; }
+      .season-rows{ margin-top:12px; display:grid; gap:8px; }
+      .season-row{
+        display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;
+        background:rgba(255,255,255,.13); border-radius:9px; padding:10px 12px;
+      }
+      .season-row .s-label{ font-weight:700; font-size:15px; line-height:1.35; }
+      .season-row .s-label small{ display:block; font-weight:500; opacity:.85; font-size:12.5px; }
+      .season-row .s-miles{ font-size:clamp(22px,6vw,28px); font-weight:800; line-height:1.1; font-variant-numeric:tabular-nums; text-align:right; white-space:nowrap; }
+      .season-row .s-miles small{ font-size:13px; font-weight:600; }
+      .season-row .s-total{ font-size:13px; opacity:.9; width:100%; text-align:right; }
       .notice{
         border-radius:10px; padding:11px 13px; font-size:14px; margin-top:14px;
       }
@@ -190,10 +200,12 @@
         <div class="row">
           <p class="lab">シーズン（搭乗日で決まります）</p>
           <div class="seg" id="domSeasonSeg">
+            <button type="button" data-v="none" class="active">指定しない</button>
             <button type="button" data-v="L">ロー（L）</button>
-            <button type="button" data-v="R" class="active">レギュラー（R）</button>
+            <button type="button" data-v="R">レギュラー（R）</button>
             <button type="button" data-v="H">ハイ（H）</button>
           </div>
+          <p style="font-size:13px;color:var(--ink2);margin:6px 0 0">「指定しない」を選ぶと、ロー・レギュラー・ハイの3シーズンを並べて表示します。</p>
         </div>
 
         <div class="row">
@@ -264,10 +276,12 @@
         <div class="row" id="seasonRow">
           <p class="lab">シーズン（搭乗日で決まります）</p>
           <div class="seg" id="seasonSeg">
+            <button type="button" data-v="none" class="active">指定しない</button>
             <button type="button" data-v="L">ロー（L）</button>
-            <button type="button" data-v="R" class="active">レギュラー（R）</button>
+            <button type="button" data-v="R">レギュラー（R）</button>
             <button type="button" data-v="H">ハイ（H）</button>
           </div>
+          <p style="font-size:13px;color:var(--ink2);margin:6px 0 0">「指定しない」を選ぶと、ロー・レギュラー・ハイの3シーズンを並べて表示します。</p>
         </div>
 
         <div class="row" id="ptypeRow" hidden>
@@ -614,8 +628,8 @@
     /* ================= 状態と共通部品 ================= */
     var S = {
       tab:"dom",
-      domMode:"airport", domFrom:"HND", domTo:"CTS", domBand:1, domSeason:"R", domTrip:"round", domPax:1,
-      mode:"ana", region:"all", dest:31, cls:"Y", season:"R", trip:"round", pax:1, ptype:"1A"
+      domMode:"airport", domFrom:"HND", domTo:"CTS", domBand:1, domSeason:"none", domTrip:"round", domPax:1,
+      mode:"ana", region:"all", dest:31, cls:"Y", season:"none", trip:"round", pax:1, ptype:"1A"
     };
     var SEASON_IDX = { L:0, R:1, H:2 };
     var SEASON_NAME = { L:"ローシーズン", R:"レギュラーシーズン", H:"ハイシーズン" };
@@ -659,6 +673,16 @@
         '<p class="per">1人あたり・' + tripLabel + '　' + detail + '</p>' +
         totalBarHtml(pax, perPerson) + '</div>';
     }
+    function resultAllHtml(routeLabel, items, tripLabel, pax, detailBase){
+      var rows = items.map(function(it){
+        var total = (pax>1) ? '<span class="s-total">' + pax + '人分の合計 ' + fmt(it.miles*pax) + ' マイル</span>' : '';
+        return '<div class="season-row"><span class="s-label">' + it.label + '<small>' + it.code + '</small></span>' +
+          '<span class="s-miles">' + fmt(it.miles) + ' <small>マイル</small></span>' + total + '</div>';
+      }).join("");
+      return '<div class="result"><p class="route">' + routeLabel + '</p>' +
+        '<p class="per" style="margin-top:0;opacity:.9">1人あたり・' + tripLabel + '　' + detailBase + '／シーズン別</p>' +
+        '<div class="season-rows">' + rows + '</div></div>';
+    }
 
     /* ================= 国内線 ================= */
     function renderDom(){
@@ -683,13 +707,21 @@
         band = parseInt(S.domBand,10);
         routeLabel = "距離帯から計算";
       }
-      var per = DOM_CHART[band].v[SEASON_IDX[S.domSeason]];
       var tripLabel = (S.domTrip==="round") ? "往復" : "片道";
-      if(S.domTrip==="round") per = per*2;
+      var mult = (S.domTrip==="round") ? 2 : 1;
       var pax = paxNum(S.domPax);
+      var noticeHtml = '<div class="notice info"><p>国内線に燃油サーチャージはありません（空港の旅客施設使用料などは別途現金でかかります）。プレミアムクラスは特典航空券では取れません。有償航空券を買ったうえでのアップグレード特典（別制度）をご利用ください。</p></div>';
+      if(S.domSeason==="none"){
+        var items = ["L","R","H"].map(function(k){
+          return { code: k, label: SEASON_NAME[k], miles: DOM_CHART[band].v[SEASON_IDX[k]]*mult };
+        });
+        box.innerHTML = resultAllHtml(routeLabel, items, tripLabel, pax,
+          "距離帯：" + DOM_CHART[band].label) + noticeHtml;
+        return;
+      }
+      var per = DOM_CHART[band].v[SEASON_IDX[S.domSeason]] * mult;
       box.innerHTML = resultHtml(routeLabel, per, tripLabel, pax,
-        "距離帯：" + DOM_CHART[band].label + "／" + SEASON_NAME[S.domSeason]) +
-        '<div class="notice info"><p>国内線に燃油サーチャージはありません（空港の旅客施設使用料などは別途現金でかかります）。プレミアムクラスは特典航空券では取れません。有償航空券を買ったうえでのアップグレード特典（別制度）をご利用ください。</p></div>';
+        "距離帯：" + DOM_CHART[band].label + "／" + SEASON_NAME[S.domSeason]) + noticeHtml;
     }
 
     /* ================= 国際線 ================= */
@@ -724,6 +756,18 @@
         if(!dest.ana){
           box.innerHTML = '<div class="notice warn"><p><b>' + dest.n + '</b> はANA便が就航していない行き先です。「提携航空会社」に切り替えると、' +
             ZONE_NAME[dest.pz] + ' のチャートで計算できます。</p></div>';
+        } else if(S.season==="none"){
+          var rowCheck = ANA_CHART[dest.az][S.cls];
+          if(!rowCheck){
+            box.innerHTML = '<div class="notice warn"><p>日本 〜 ' + dest.n + '（' + ZONE_NAME[dest.az] + '）の ' + CLS_NAME[S.cls] +
+              ' には設定がありません。ファーストクラスはアジア2・ハワイ・北米・欧州方面のみ、プレミアムエコノミーは韓国方面を除く方面に設定があります。</p></div>';
+          } else {
+            var itemsAll = ["L","R","H"].map(function(k){
+              return { code: k, label: SEASON_NAME[k], miles: anaMiles(dest, S.cls, k, S.trip) };
+            });
+            box.innerHTML = resultAllHtml("東京 〜 " + dest.n + "（ANA便）", itemsAll, tripLabel, pax,
+              ZONE_NAME[dest.az] + "／" + CLS_NAME[S.cls]);
+          }
         } else {
           var v = anaMiles(dest, S.cls, S.season, S.trip);
           if(v===null){
@@ -793,14 +837,24 @@
         box.innerHTML = '<div class="compare"><h3>ANA便と提携社の比較</h3><p style="margin:0">提携社にプレミアムエコノミーの設定がないため、このクラスでは比較できません。</p></div>';
         return;
       }
-      var a = anaMiles(dest, S.cls, S.season, S.trip);
       var pm = partnerMiles(dest, S.cls, "1A", S.trip);
       function cell(v){ return (v===null || v===undefined) ? "設定なし" : fmt(v) + " マイル"; }
-      var aTxt = dest.ana ? cell(a) : "就航なし";
       var pTxt = pm ? cell(pm.miles) + (pm.usedType==="1B" ? "（1-B）" : "（1-A）") : "設定なし";
+      var rowsHtml = "";
+      if(S.season==="none"){
+        ["L","R","H"].forEach(function(k){
+          var av = anaMiles(dest, S.cls, k, S.trip);
+          var aTxtAll = dest.ana ? cell(av) : "就航なし";
+          rowsHtml += '<tr><td>ANA便（' + SEASON_NAME[k] + '）</td><td>' + aTxtAll + '</td></tr>';
+        });
+      } else {
+        var a = anaMiles(dest, S.cls, S.season, S.trip);
+        var aTxt = dest.ana ? cell(a) : "就航なし";
+        rowsHtml = '<tr><td>ANA便（' + SEASON_NAME[S.season] + '）</td><td>' + aTxt + '</td></tr>';
+      }
+      rowsHtml += '<tr><td>提携航空会社（シーズンなし）</td><td>' + pTxt + '</td></tr>';
       box.innerHTML = '<div class="compare"><h3>ANA便と提携社の比較（' + tripLabel + '・1人あたり・' + CLS_NAME[S.cls] + '）</h3>' +
-        '<table><tr><td>ANA便（' + SEASON_NAME[S.season] + '）</td><td>' + aTxt + '</td></tr>' +
-        '<tr><td>提携航空会社（シーズンなし）</td><td>' + pTxt + '</td></tr></table>' +
+        '<table>' + rowsHtml + '</table>' +
         '<p style="margin:6px 0 0;color:var(--ink2)">ANA便はシーズンで変動し、提携社は年中同じマイル数です。現金でかかる燃油サーチャージは、ANA便は全路線で必要、提携社は航空会社により無料〜高額と差があります。</p></div>';
     }
 
