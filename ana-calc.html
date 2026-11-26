@@ -22,6 +22,7 @@
         }
       }
       *{ box-sizing:border-box; }
+      [hidden]{ display:none !important; }
       html{ -webkit-text-size-adjust:100%; }
       body{
         margin:0; background:var(--bg); color:var(--ink);
@@ -34,6 +35,23 @@
       h1{ font-size:clamp(22px,5.4vw,32px); line-height:1.3; margin:0 0 8px; color:var(--navy); letter-spacing:.01em; }
       .lead{ color:var(--ink2); margin:0; font-size:15px; }
       .lead b{ color:var(--ink); }
+      .tabs{
+        display:flex; gap:6px; background:var(--card); border:1px solid var(--line);
+        border-radius:14px; padding:6px; margin:0 0 18px;
+      }
+      .tabs button{
+        flex:1 1 0; border:1px solid transparent; background:transparent; color:var(--ink2);
+        border-radius:10px; padding:10px 12px; cursor:pointer; font-size:17px; font-weight:700;
+        min-height:3rem; line-height:1.3; letter-spacing:.02em;
+      }
+      .tabs button.active{
+        background:var(--navy); border-color:var(--navy); color:#fff;
+        box-shadow:0 1px 4px rgba(11,42,91,.25);
+      }
+      @media (prefers-color-scheme: dark){
+        .tabs button.active{ background:var(--sky); border-color:var(--sky); }
+      }
+      .tabs button:focus-visible{ outline:2px solid var(--sky); outline-offset:2px; }
       section.card{
         background:var(--card); border:1px solid var(--line); border-radius:14px;
         padding:18px 16px 20px; margin:0 0 18px;
@@ -128,8 +146,13 @@
         <p class="lead">ANAマイルで特典航空券に交換するときの必要マイル数を、ANA公式チャートで計算します。<b>国内線</b>と<b>国際線（ANA便／提携航空会社）</b>に対応。提携社はスターアライアンス加盟社が中心で、燃油サーチャージの水準も航空会社ごとに確認できます。</p>
       </header>
 
+      <div class="tabs" role="tablist" aria-label="国内線と国際線の切り替え">
+        <button type="button" id="tabDom" role="tab" aria-selected="true" aria-controls="domSec" class="active">国内線</button>
+        <button type="button" id="tabIntl" role="tab" aria-selected="false" aria-controls="intlSec">国際線</button>
+      </div>
+
       <!-- ============ 国内線 ============ -->
-      <section class="card" id="domSec">
+      <section class="card" id="domSec" role="tabpanel" aria-labelledby="tabDom">
         <h2>国内線</h2>
         <p class="sub">必要マイルは「区間の距離帯 × シーズン（L／R／H）」で決まります（片道・1区間あたり）。プレミアムクラスは特典航空券の対象外です。</p>
 
@@ -196,7 +219,7 @@
       </section>
 
       <!-- ============ 国際線 ============ -->
-      <section class="card" id="intlSec">
+      <section class="card" id="intlSec" role="tabpanel" aria-labelledby="tabIntl" hidden>
         <h2>国際線</h2>
         <p class="sub">日本発着が対象です。ANA便はゾーン×シーズン×クラス、提携社はゾーン×クラス（<b>シーズン区分なし</b>）で決まります。どちらも2025年6月24日から片道でも交換できます。</p>
 
@@ -590,6 +613,7 @@
 
     /* ================= 状態と共通部品 ================= */
     var S = {
+      tab:"dom",
       domMode:"airport", domFrom:"HND", domTo:"CTS", domBand:1, domSeason:"R", domTrip:"round", domPax:1,
       mode:"ana", region:"all", dest:31, cls:"Y", season:"R", trip:"round", pax:1, ptype:"1A"
     };
@@ -611,6 +635,18 @@
     function segSet(id, val){
       var btns = document.getElementById(id).querySelectorAll("button");
       for(var i=0;i<btns.length;i++) btns[i].classList.toggle("active", btns[i].getAttribute("data-v")===String(val));
+    }
+    function setTab(tab){
+      S.tab = tab;
+      var isDom = (tab==="dom");
+      document.getElementById("domSec").hidden = !isDom;
+      document.getElementById("intlSec").hidden = isDom;
+      var tabDom = document.getElementById("tabDom");
+      var tabIntl = document.getElementById("tabIntl");
+      tabDom.classList.toggle("active", isDom);
+      tabIntl.classList.toggle("active", !isDom);
+      tabDom.setAttribute("aria-selected", isDom ? "true" : "false");
+      tabIntl.setAttribute("aria-selected", !isDom ? "true" : "false");
     }
     function paxNum(v){ var n = parseInt(v,10); return (n>=1 && n<=5) ? n : 1; }
     function totalBarHtml(pax, perPerson){
@@ -796,6 +832,9 @@
     }
 
     (function init(){
+      document.getElementById("tabDom").addEventListener("click", function(){ setTab("dom"); });
+      document.getElementById("tabIntl").addEventListener("click", function(){ setTab("intl"); });
+      setTab("dom");
       var fromSel = document.getElementById("domFrom");
       var toSel = document.getElementById("domTo");
       DOM_AIRPORTS.forEach(function(a){
