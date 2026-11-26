@@ -146,7 +146,9 @@
       a{ color:var(--jal-dark); font-weight:700; }
       @media (prefers-color-scheme: dark){ a{ color:#ff8fa3; } }
       footer{ text-align:center; font-size:12px; line-height:1.9; color:#fff; text-shadow:0 1px 6px rgba(10,30,50,.55); padding:4px 8px 10px; }
+      #jal-season button{ letter-spacing:-.02em; }
       @media (max-width:560px){
+        #jal-season button{ font-size:11.6px; letter-spacing:-.05em; }
         .seg button{ font-size:12.3px; padding:9px 2px; white-space:nowrap; letter-spacing:-.03em; }
         .miles-grid{ grid-template-columns:1fr 1fr 1fr; gap:7px; }
         .mile-box .v{ font-size:19px; }
@@ -248,10 +250,11 @@
             </div>
 
             <div id="jal-season-box" class="hidden">
-              <p class="lbl">シーズン（ファーストクラスはシーズンで固定）</p>
+              <p class="lbl">シーズン（ファーストクラスはシーズンで固定・指定しない場合は全シーズンを表示）</p>
               <div class="seg light" id="jal-season">
+                <button type="button" data-v="all" class="active">指定しない</button>
                 <button type="button" data-v="L">ロー（L）</button>
-                <button type="button" data-v="R" class="active">レギュラー（R）</button>
+                <button type="button" data-v="R">レギュラー（R）</button>
                 <button type="button" data-v="H">ハイ（H）</button>
               </div>
             </div>
@@ -643,7 +646,7 @@ var CLASS_NAME = { y:"エコノミー", py:"プレミアムエコノミー", c:"
 var S = {
   mode:"dom",
   domMode:"airport", domZone:"C", domClass:"y", domTrip:"one", domPax:"1",
-  intlType:"jal", jalDest:"honolulu", jalClass:"y", jalTrip:"one", jalSeason:"R", jalPax:"1",
+  intlType:"jal", jalDest:"honolulu", jalClass:"y", jalTrip:"one", jalSeason:"all", jalPax:"1",
   distClass:"c", distPax:"1", distMode:"city", distTrip:"round", distRegion:"all"
 };
 var DIST_REGIONS = ["all","東アジア","東南アジア","南アジア","オセアニア","ハワイ・グアム","北米","中南米","ヨーロッパ","中東","アフリカ"];
@@ -805,17 +808,30 @@ function renderJal(){
       return;
     }
     var names = ["L","R","H"], jname = ["ローシーズン","レギュラーシーズン","ハイシーズン"], kcls = ["k-l","k-r","k-h"];
-    var cells = "";
-    for(var k=0;k<3;k++){
-      cells += '<div class="mile-box'+(S.jalSeason===names[k] ? " hl" : "")+'"><div class="k '+kcls[k]+'">'+names[k]+'</div><div class="kn">'+jname[k]+'</div><div class="v">'+fmt(d.f[k]*mult)+'</div><div class="u">マイル（1人）</div></div>';
-    }
     var paxF = paxNum(S.jalPax);
     var selIdx = names.indexOf(S.jalSeason);
+    var isAll = selIdx < 0;
+    var cells = "", gridCls = "", totalHtml = "", metaSeason = "";
+    if(isAll){
+      for(var k=0;k<3;k++){
+        cells += '<div class="mile-box"><div class="k '+kcls[k]+'">'+names[k]+'</div><div class="kn">'+jname[k]+'</div><div class="v">'+fmt(d.f[k]*mult)+'</div><div class="u">マイル（1人）</div></div>';
+      }
+      metaSeason = "全シーズン";
+      if(paxF>1){
+        totalHtml = '<div class="total-bar">'+paxF+'人分の合計：ロー '+fmt(d.f[0]*mult*paxF)+' マイル ／ レギュラー '+fmt(d.f[1]*mult*paxF)+' マイル ／ ハイ '+fmt(d.f[2]*mult*paxF)+' マイル'+
+          '<span class="sub2">上の表示は1人あたりです。小児も大人と同じマイル数です。</span></div>';
+      }
+    } else {
+      gridCls = " single";
+      cells = '<div class="mile-box hl"><div class="k '+kcls[selIdx]+'">'+names[selIdx]+'</div><div class="kn">'+jname[selIdx]+'</div><div class="v">'+fmt(d.f[selIdx]*mult)+'</div><div class="u">マイル（1人）</div></div>';
+      metaSeason = jname[selIdx]+'（'+names[selIdx]+'）';
+      totalHtml = totalBarHtml(paxF, d.f[selIdx]*mult*paxF, null);
+    }
     box.innerHTML =
       '<p class="result-head">日本 ⇄ '+d.name+'（ファーストクラス）</p>'+
-      '<p class="result-meta">'+tripLbl+'・'+d.area+'<span class="tag">固定マイル</span></p>'+
-      '<div class="miles-grid">'+cells+'</div>'+
-      totalBarHtml(paxF, d.f[selIdx]*mult*paxF, null)+
+      '<p class="result-meta">'+tripLbl+'・'+d.area+'・'+metaSeason+'<span class="tag">固定マイル</span></p>'+
+      '<div class="miles-grid'+gridCls+'">'+cells+'</div>'+
+      totalHtml +
       fuelHtml(JAL_FUEL[d.id], mult, paxF, false)+
       '<div class="note"><strong>ファーストクラスは固定マイル</strong>です。特典航空券PLUSの対象外のため、空席状況でマイル数が増えることはなく、シーズン（L／R／H）だけで決まります。<br>'+
       'ハイシーズンの目安：2026年12月13日〜2027年1月12日、2027年4月23日〜5月9日、7月16日〜8月29日、12月17日〜2028年1月10日。ロー／レギュラーの境界はJAL公式のシーズン表でご確認ください。<br>'+
