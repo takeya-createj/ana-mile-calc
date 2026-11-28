@@ -92,6 +92,12 @@
         width:100%; border:1px solid var(--line); border-radius:9px; background:var(--card-solid); color:var(--ink);
         padding:6px 10px; font-size:16px;
       }
+      input[type="date"]{
+        width:100%; border:1px solid var(--line); border-radius:9px; background:var(--card-solid); color:var(--ink);
+        padding:6px 10px; font-size:16px; color-scheme:light dark;
+      }
+      input[type="date"]:focus-visible{ outline:2px solid var(--sky); outline-offset:2px; }
+      .date-note{ font-size:13px; color:var(--ink2); margin:6px 0 0; }
       .grid2{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
       @media (max-width:560px){ .grid2{ grid-template-columns:1fr; } }
       .result{
@@ -224,6 +230,21 @@
           <p style="font-size:13px;color:var(--ink2);margin:6px 0 0">「指定しない」を選ぶと、ロー・レギュラー・ハイの3シーズンを並べて表示します。</p>
         </div>
 
+        <div class="row" id="domDateRow">
+          <p class="lab">搭乗日で判定（任意）</p>
+          <div class="grid2">
+            <div>
+              <p class="lab">往路</p>
+              <input type="date" id="domDateOut" aria-label="国内線・往路の搭乗日">
+            </div>
+            <div id="domDateRetWrap">
+              <p class="lab">復路</p>
+              <input type="date" id="domDateRet" aria-label="国内線・復路の搭乗日">
+            </div>
+          </div>
+          <p class="date-note">日付を入れるとシーズンを自動判定し、手動のシーズン選択より優先します。空にすると手動選択に戻ります。判定できるのは2026年5月19日〜2028年3月31日の搭乗日です（それ以前は旧制度のため判定できません）。</p>
+        </div>
+
         <div class="row">
           <p class="lab">片道／往復</p>
           <div class="seg" id="domTripSeg">
@@ -298,6 +319,21 @@
             <button type="button" data-v="H">ハイ（H）</button>
           </div>
           <p style="font-size:13px;color:var(--ink2);margin:6px 0 0">「指定しない」を選ぶと、ロー・レギュラー・ハイの3シーズンを並べて表示します。</p>
+        </div>
+
+        <div class="row" id="dateRow">
+          <p class="lab">搭乗日で判定（任意）</p>
+          <div class="grid2">
+            <div>
+              <p class="lab">往路</p>
+              <input type="date" id="dateOut" aria-label="国際線・往路の搭乗日">
+            </div>
+            <div id="dateRetWrap">
+              <p class="lab">復路</p>
+              <input type="date" id="dateRet" aria-label="国際線・復路の搭乗日">
+            </div>
+          </div>
+          <p class="date-note">日付を入れるとシーズンを自動判定し、手動のシーズン選択より優先します。空にすると手動選択に戻ります。判定できるのは2026年1月1日〜2028年3月31日の搭乗日です。</p>
         </div>
 
         <div class="row" id="ptypeRow" hidden>
@@ -598,6 +634,31 @@
       return SEASON_2026.south;
     }
 
+    // シーズンカレンダー（ANA公式確認済み） [開始日, 終了日, シーズン]
+    var SEASON_CAL = {
+      asia: [["2026-01-01","2026-01-04","H"],["2026-01-05","2026-02-13","L"],["2026-02-14","2026-03-31","R"],["2026-04-01","2026-04-28","L"],["2026-04-29","2026-05-10","H"],["2026-05-11","2026-06-30","L"],["2026-07-01","2026-07-17","R"],["2026-07-18","2026-08-23","H"],["2026-08-24","2026-12-20","R"],["2026-12-21","2026-12-31","H"],["2027-01-01","2027-01-04","H"],["2027-01-05","2027-02-03","L"],["2027-02-04","2027-02-06","H"],["2027-02-07","2027-03-31","R"],["2027-04-01","2027-04-11","R"],["2027-04-12","2027-04-28","L"],["2027-04-29","2027-05-09","H"],["2027-05-10","2027-06-30","L"],["2027-07-01","2027-07-15","R"],["2027-07-16","2027-08-23","H"],["2027-08-24","2027-09-30","R"],["2027-10-01","2027-10-07","H"],["2027-10-08","2027-11-30","R"],["2027-12-01","2027-12-19","L"],["2027-12-20","2027-12-31","H"],["2028-01-01","2028-01-04","H"],["2028-01-05","2028-01-24","L"],["2028-01-25","2028-01-31","H"],["2028-02-01","2028-03-31","R"]],
+      west: [["2026-01-01","2026-01-03","H"],["2026-01-04","2026-01-05","R"],["2026-01-06","2026-02-28","L"],["2026-03-01","2026-03-31","R"],["2026-04-01","2026-04-28","L"],["2026-04-29","2026-05-09","H"],["2026-05-10","2026-07-15","R"],["2026-07-16","2026-08-23","H"],["2026-08-24","2026-12-18","R"],["2026-12-19","2026-12-31","H"],["2027-01-01","2027-01-03","H"],["2027-01-04","2027-01-05","R"],["2027-01-06","2027-02-28","L"],["2027-03-01","2027-04-28","R"],["2027-04-29","2027-05-09","H"],["2027-05-10","2027-07-15","R"],["2027-07-16","2027-08-22","H"],["2027-08-23","2027-12-19","R"],["2027-12-20","2027-12-31","H"],["2028-01-01","2028-01-03","H"],["2028-01-04","2028-01-05","R"],["2028-01-06","2028-02-29","L"],["2028-03-01","2028-03-31","R"]],
+      south: [["2026-01-01","2026-01-03","H"],["2026-01-04","2026-01-06","R"],["2026-01-07","2026-02-28","L"],["2026-03-01","2026-03-31","R"],["2026-04-01","2026-04-27","L"],["2026-04-28","2026-05-09","H"],["2026-05-10","2026-05-31","L"],["2026-06-01","2026-06-30","R"],["2026-07-01","2026-07-15","L"],["2026-07-16","2026-08-23","H"],["2026-08-24","2026-12-18","R"],["2026-12-19","2026-12-31","H"],["2027-01-01","2027-01-03","H"],["2027-01-04","2027-01-05","R"],["2027-01-06","2027-02-28","L"],["2027-03-01","2027-03-31","R"],["2027-04-01","2027-04-28","L"],["2027-04-29","2027-05-09","H"],["2027-05-10","2027-05-31","L"],["2027-06-01","2027-07-15","R"],["2027-07-16","2027-08-22","H"],["2027-08-23","2027-12-19","R"],["2027-12-20","2027-12-31","H"],["2028-01-01","2028-01-03","H"],["2028-01-04","2028-01-05","R"],["2028-01-06","2028-02-29","L"],["2028-03-01","2028-03-31","R"]],
+      dom: [["2026-05-19","2026-07-17","R"],["2026-07-18","2026-08-30","H"],["2026-08-31","2026-11-30","R"],["2026-12-01","2026-12-23","L"],["2026-12-24","2026-12-31","H"],["2027-01-01","2027-01-06","H"],["2027-01-07","2027-02-28","L"],["2027-03-01","2027-03-11","R"],["2027-03-12","2027-03-31","H"],["2027-04-01","2027-04-27","L"],["2027-04-28","2027-05-10","H"],["2027-05-11","2027-07-15","R"],["2027-07-16","2027-08-22","H"],["2027-08-23","2027-09-16","R"],["2027-09-17","2027-09-20","H"],["2027-09-21","2027-09-22","R"],["2027-09-23","2027-09-26","H"],["2027-09-27","2027-09-30","R"],["2027-10-01","2027-11-23","H"],["2027-11-24","2027-11-30","R"],["2027-12-01","2027-12-27","L"],["2027-12-28","2027-12-31","H"],["2028-01-01","2028-01-12","H"],["2028-01-13","2028-02-09","L"],["2028-02-10","2028-02-13","H"],["2028-02-14","2028-02-29","L"],["2028-03-01","2028-03-09","R"],["2028-03-10","2028-03-31","H"]]
+    };
+    function lookupSeason(cal, d){
+      if(!d || !cal) return null;
+      for(var i=0;i<cal.length;i++){
+        if(d>=cal[i][0] && d<=cal[i][1]) return cal[i][2];
+      }
+      return null;
+    }
+    function chartKeyForZone(zone){
+      if(zone==="z2"||zone==="z3"||zone==="z4") return "asia";
+      if(zone==="z6"||zone==="z7") return "west";
+      return "south";
+    }
+    function fmtDateJa(d){
+      var p = String(d).split("-");
+      if(p.length!==3) return d;
+      return parseInt(p[0],10) + "年" + parseInt(p[1],10) + "月" + parseInt(p[2],10) + "日";
+    }
+
     /* ================= 国内線データ ================= */
     var DOM_AIRPORTS = [
       ["CTS","札幌（新千歳）"],["AKJ","旭川"],["KUH","釧路"],["HKD","函館"],["SDJ","仙台"],
@@ -645,7 +706,9 @@
     var S = {
       tab:"dom",
       domMode:"airport", domFrom:"HND", domTo:"CTS", domBand:1, domSeason:"none", domTrip:"round", domPax:1,
-      mode:"ana", region:"all", dest:31, cls:"Y", season:"none", trip:"round", pax:1, ptype:"1A"
+      domDateOut:"", domDateRet:"",
+      mode:"ana", region:"all", dest:31, cls:"Y", season:"none", trip:"round", pax:1, ptype:"1A",
+      dateOut:"", dateRet:""
     };
     var SEASON_IDX = { L:0, R:1, H:2 };
     var SEASON_NAME = { L:"ローシーズン", R:"レギュラーシーズン", H:"ハイシーズン" };
@@ -700,11 +763,16 @@
         '<div class="season-rows">' + rows + '</div></div>';
     }
 
+    function seasonStatement(d, leg, season){
+      return fmtDateJa(d) + "（" + leg + "）は" + SEASON_NAME[season] + "（" + season + "）です";
+    }
+
     /* ================= 国内線 ================= */
     function renderDom(){
       var box = document.getElementById("domResult");
       document.getElementById("domAirportRow").hidden = (S.domMode!=="airport");
       document.getElementById("domBandRow").hidden = (S.domMode!=="band");
+      document.getElementById("domDateRetWrap").hidden = (S.domTrip!=="round");
       var band = null, routeLabel = "";
       if(S.domMode==="airport"){
         if(S.domFrom===S.domTo){
@@ -727,17 +795,64 @@
       var mult = (S.domTrip==="round") ? 2 : 1;
       var pax = paxNum(S.domPax);
       var noticeHtml = '<div class="notice info"><p>国内線に燃油サーチャージはありません（空港の旅客施設使用料などは別途現金でかかります）。プレミアムクラスは特典航空券では取れません。有償航空券を買ったうえでのアップグレード特典（別制度）をご利用ください。</p></div>';
+      // 搭乗日によるシーズン自動判定（手動選択より優先）
+      if(S.domDateOut){
+        var dOutSeason = lookupSeason(SEASON_CAL.dom, S.domDateOut);
+        if(dOutSeason===null){
+          box.innerHTML = '<div class="notice warn"><p>' + fmtDateJa(S.domDateOut) + '（往路）は判定範囲外のため、シーズンを自動判定できません。判定できるのは2026年5月19日〜2028年3月31日の搭乗日です（それ以前は旧制度のため判定できません）。手動のシーズン選択で計算しています。</p></div>' +
+            domManualHtml(routeLabel, band, tripLabel, mult, pax) + noticeHtml;
+          return;
+        }
+        var dBanner = '<div class="notice info"><p>' + seasonStatement(S.domDateOut, "往路", dOutSeason) + '</p></div>';
+        var dExtra = "";
+        if(S.domTrip==="round" && S.domDateRet){
+          var dRetSeason = lookupSeason(SEASON_CAL.dom, S.domDateRet);
+          if(dRetSeason===null){
+            dBanner = '<div class="notice info"><p>' + seasonStatement(S.domDateOut, "往路", dOutSeason) + '</p></div>' +
+              '<div class="notice warn"><p>' + fmtDateJa(S.domDateRet) + '（復路）は判定範囲外のため、復路も往路のシーズン（' + SEASON_NAME[dOutSeason] + '）で計算しています。判定できるのは2026年5月19日〜2028年3月31日の搭乗日です（それ以前は旧制度のため判定できません）。</p></div>';
+            var dPerSame = DOM_CHART[band].v[SEASON_IDX[dOutSeason]] * 2;
+            box.innerHTML = dBanner + resultHtml(routeLabel, dPerSame, tripLabel, pax,
+              "距離帯：" + DOM_CHART[band].label + "／" + SEASON_NAME[dOutSeason]) + noticeHtml;
+            return;
+          }
+          if(dRetSeason!==dOutSeason){
+            var dOutMiles = DOM_CHART[band].v[SEASON_IDX[dOutSeason]];
+            var dRetMiles = DOM_CHART[band].v[SEASON_IDX[dRetSeason]];
+            var dTotal = dOutMiles + dRetMiles;
+            dBanner = '<div class="notice info"><p>' + seasonStatement(S.domDateOut, "往路", dOutSeason) + '<br>' +
+              seasonStatement(S.domDateRet, "復路", dRetSeason) + '<br>往路と復路でシーズンが異なるため、区間（片道）ごとに計算して合算しています。</p></div>';
+            box.innerHTML = dBanner + resultHtml(routeLabel, dTotal, tripLabel, pax,
+              "距離帯：" + DOM_CHART[band].label + "／往路 " + fmt(dOutMiles) + "マイル（" + SEASON_NAME[dOutSeason] + "）＋復路 " + fmt(dRetMiles) + "マイル（" + SEASON_NAME[dRetSeason] + "）") + noticeHtml;
+            return;
+          }
+          dBanner = '<div class="notice info"><p>' + seasonStatement(S.domDateOut, "往路", dOutSeason) + '<br>' +
+            seasonStatement(S.domDateRet, "復路", dRetSeason) + '</p></div>';
+          var dPerEq = DOM_CHART[band].v[SEASON_IDX[dOutSeason]] * 2;
+          box.innerHTML = dBanner + resultHtml(routeLabel, dPerEq, tripLabel, pax,
+            "距離帯：" + DOM_CHART[band].label + "／" + SEASON_NAME[dOutSeason]) + noticeHtml;
+          return;
+        }
+        if(S.domTrip==="round" && !S.domDateRet){
+          dExtra = '<div class="notice info"><p>復路の日付を入れると、シーズンが違う場合は区間ごとに計算します。いまは往路のシーズンを往復全体に適用しています。</p></div>';
+        }
+        var dPer = DOM_CHART[band].v[SEASON_IDX[dOutSeason]] * mult;
+        box.innerHTML = dBanner + resultHtml(routeLabel, dPer, tripLabel, pax,
+          "距離帯：" + DOM_CHART[band].label + "／" + SEASON_NAME[dOutSeason]) + dExtra + noticeHtml;
+        return;
+      }
+      box.innerHTML = domManualHtml(routeLabel, band, tripLabel, mult, pax) + noticeHtml;
+    }
+    function domManualHtml(routeLabel, band, tripLabel, mult, pax){
       if(S.domSeason==="none"){
         var items = ["L","R","H"].map(function(k){
           return { code: k, label: SEASON_NAME[k], miles: DOM_CHART[band].v[SEASON_IDX[k]]*mult };
         });
-        box.innerHTML = resultAllHtml(routeLabel, items, tripLabel, pax,
-          "距離帯：" + DOM_CHART[band].label) + noticeHtml;
-        return;
+        return resultAllHtml(routeLabel, items, tripLabel, pax,
+          "距離帯：" + DOM_CHART[band].label);
       }
       var per = DOM_CHART[band].v[SEASON_IDX[S.domSeason]] * mult;
-      box.innerHTML = resultHtml(routeLabel, per, tripLabel, pax,
-        "距離帯：" + DOM_CHART[band].label + "／" + SEASON_NAME[S.domSeason]) + noticeHtml;
+      return resultHtml(routeLabel, per, tripLabel, pax,
+        "距離帯：" + DOM_CHART[band].label + "／" + SEASON_NAME[S.domSeason]);
     }
 
     /* ================= 国際線 ================= */
@@ -765,13 +880,62 @@
       var pax = paxNum(S.pax);
       var tripLabel = (S.trip==="round") ? "往復" : "片道";
       document.getElementById("seasonRow").hidden = (S.mode!=="ana");
+      document.getElementById("dateRow").hidden = (S.mode!=="ana");
+      document.getElementById("dateRetWrap").hidden = (S.trip!=="round");
       document.getElementById("ptypeRow").hidden = (S.mode!=="partner");
       document.getElementById("clsPyBtn").disabled = (S.mode==="partner");
+
+      // 搭乗日によるシーズン自動判定（ANA便のみ・手動選択より優先）
+      var dateValid = false, dateSeasonOut = null, dateSeasonRet = null, dateSplit = false, dateOutInvalid = false;
+      var dateBanner = "", dateExtra = "", dateWarnHtml = "";
+      if(S.mode==="ana" && S.dateOut && dest.az){
+        var calK = SEASON_CAL[chartKeyForZone(dest.az)];
+        dateSeasonOut = lookupSeason(calK, S.dateOut);
+        if(dateSeasonOut===null){
+          dateOutInvalid = true;
+          dateWarnHtml = '<div class="notice warn"><p>' + fmtDateJa(S.dateOut) + '（往路）は判定範囲外のため、シーズンを自動判定できません。判定できるのは2026年1月1日〜2028年3月31日の搭乗日です。手動のシーズン選択で計算しています。</p></div>';
+        } else {
+          dateValid = true;
+          var stmts = seasonStatement(S.dateOut, "往路", dateSeasonOut);
+          if(S.trip==="round" && S.dateRet){
+            dateSeasonRet = lookupSeason(calK, S.dateRet);
+            if(dateSeasonRet===null){
+              dateBanner = '<div class="notice info"><p>' + stmts + '</p></div>' +
+                '<div class="notice warn"><p>' + fmtDateJa(S.dateRet) + '（復路）は判定範囲外のため、復路も往路のシーズン（' + SEASON_NAME[dateSeasonOut] + '）で計算しています。判定できるのは2026年1月1日〜2028年3月31日の搭乗日です。</p></div>';
+            } else if(dateSeasonRet!==dateSeasonOut){
+              dateSplit = true;
+              dateBanner = '<div class="notice info"><p>' + stmts + '<br>' + seasonStatement(S.dateRet, "復路", dateSeasonRet) + '<br>往路と復路でシーズンが異なるため、区間（片道）ごとに計算して合算しています。</p></div>';
+            } else {
+              dateBanner = '<div class="notice info"><p>' + stmts + '<br>' + seasonStatement(S.dateRet, "復路", dateSeasonRet) + '</p></div>';
+            }
+          } else {
+            dateBanner = '<div class="notice info"><p>' + stmts + '</p></div>';
+            if(S.trip==="round"){
+              dateExtra = '<div class="notice info"><p>復路の日付を入れると、シーズンが違う場合は区間ごとに計算します。いまは往路のシーズンを往復全体に適用しています。</p></div>';
+            }
+          }
+        }
+      }
 
       if(S.mode==="ana"){
         if(!dest.ana){
           box.innerHTML = '<div class="notice warn"><p><b>' + dest.n + '</b> はANA便が就航していない行き先です。「提携航空会社」に切り替えると、' +
             ZONE_NAME[dest.pz] + ' のチャートで計算できます。</p></div>';
+        } else if(dateValid){
+          var rowD = ANA_CHART[dest.az][S.cls];
+          if(!rowD){
+            box.innerHTML = dateBanner + '<div class="notice warn"><p>日本 〜 ' + dest.n + '（' + ZONE_NAME[dest.az] + '）の ' + CLS_NAME[S.cls] +
+              ' には設定がありません。ファーストクラスはアジア2・ハワイ・北米・欧州方面のみ、プレミアムエコノミーは韓国方面を除く方面に設定があります。</p></div>';
+          } else if(dateSplit){
+            var outM = anaMiles(dest, S.cls, dateSeasonOut, "one");
+            var retM = anaMiles(dest, S.cls, dateSeasonRet, "one");
+            box.innerHTML = dateBanner + resultHtml("東京 〜 " + dest.n + "（ANA便）", outM + retM, tripLabel, pax,
+              ZONE_NAME[dest.az] + "／" + CLS_NAME[S.cls] + "／往路 " + fmt(outM) + "マイル（" + SEASON_NAME[dateSeasonOut] + "）＋復路 " + fmt(retM) + "マイル（" + SEASON_NAME[dateSeasonRet] + "）");
+          } else {
+            var dv = anaMiles(dest, S.cls, dateSeasonOut, S.trip);
+            box.innerHTML = dateBanner + resultHtml("東京 〜 " + dest.n + "（ANA便）", dv, tripLabel, pax,
+              ZONE_NAME[dest.az] + "／" + CLS_NAME[S.cls] + "／" + SEASON_NAME[dateSeasonOut]) + dateExtra;
+          }
         } else if(S.season==="none"){
           var rowCheck = ANA_CHART[dest.az][S.cls];
           if(!rowCheck){
@@ -806,6 +970,7 @@
             ZONE_NAME[dest.pz] + "／" + CLS_NAME[S.cls] + "／旅程タイプ " + pm.usedType.replace("1","1-") + "・シーズン区分なし" + srcNote) + note;
         }
       }
+      if(dateOutInvalid && S.mode==="ana") box.innerHTML = dateWarnHtml + box.innerHTML;
       renderSeasonBox(dest);
       renderFuel(dest, pax);
       renderCompare(dest, pax, tripLabel);
@@ -932,6 +1097,10 @@
       document.getElementById("destSel").addEventListener("change", function(){
         S.dest = parseInt(this.value,10); render();
       });
+      document.getElementById("dateOut").addEventListener("change", function(){ S.dateOut = this.value; render(); });
+      document.getElementById("dateRet").addEventListener("change", function(){ S.dateRet = this.value; render(); });
+      document.getElementById("domDateOut").addEventListener("change", function(){ S.domDateOut = this.value; render(); });
+      document.getElementById("domDateRet").addEventListener("change", function(){ S.domDateRet = this.value; render(); });
       render();
     })();
     </script>
