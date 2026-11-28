@@ -367,25 +367,6 @@
         <p class="sub">日本発着が対象です。ANA便はゾーン×シーズン×クラス、提携特典（スターアライアンス特典／個別提携社特典）はゾーン×クラス（<b>シーズン区分なし</b>）で決まります。2つの提携制度では、航空会社の組み合わせ可否などのルールが異なります。どちらも2025年6月24日から片道でも交換できます。</p>
 
         <div class="row">
-          <p class="lab">利用する航空会社</p>
-          <div class="seg wide" id="modeSeg">
-            <button type="button" data-v="ana" class="active">ANA便</button>
-            <button type="button" data-v="star">スターアライアンス特典</button>
-            <button type="button" data-v="indiv">個別提携社特典</button>
-          </div>
-        </div>
-
-        <details class="ref inline" id="starRuleRow" hidden style="margin-bottom:14px">
-          <summary>スターアライアンス特典のルール</summary>
-          <div class="body"><p style="margin:0">スターアライアンス加盟航空会社とコネクティングパートナー（吉祥航空）は、複数の航空会社を自由に組み合わせて旅程を組めます。</p></div>
-        </details>
-
-        <details class="ref inline" id="indivRuleRow" hidden style="margin-bottom:14px">
-          <summary>個別提携社特典のルール</summary>
-          <div class="body"><p style="margin:0">個別提携社特典は、その航空会社1社の運航便だけで全旅程を組む必要があります。他の航空会社との組み合わせはできません。</p></div>
-        </details>
-
-        <div class="row">
           <p class="lab">地域から絞り込む</p>
           <div class="seg small" id="regionSeg">
             <button type="button" data-v="all" class="active">すべて</button>
@@ -467,6 +448,25 @@
             <button type="button" data-v="5">5人</button>
           </div>
         </div>
+
+        <div class="row">
+          <p class="lab">利用する航空会社</p>
+          <div class="seg wide" id="modeSeg">
+            <button type="button" data-v="ana" class="active">ANA便</button>
+            <button type="button" data-v="star">スターアライアンス特典</button>
+            <button type="button" data-v="indiv">個別提携社特典</button>
+          </div>
+        </div>
+
+        <details class="ref inline" id="starRuleRow" hidden style="margin-bottom:14px">
+          <summary>スターアライアンス特典のルール</summary>
+          <div class="body"><p style="margin:0">スターアライアンス加盟航空会社とコネクティングパートナー（吉祥航空）は、複数の航空会社を自由に組み合わせて旅程を組めます。</p></div>
+        </details>
+
+        <details class="ref inline" id="indivRuleRow" hidden style="margin-bottom:14px">
+          <summary>個別提携社特典のルール</summary>
+          <div class="body"><p style="margin:0">個別提携社特典は、その航空会社1社の運航便だけで全旅程を組む必要があります。他の航空会社との組み合わせはできません。</p></div>
+        </details>
 
         <div class="row" id="starFilterRow" hidden>
           <p class="lab">航空会社から絞り込む（任意）</p>
