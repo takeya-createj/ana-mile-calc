@@ -1,7 +1,7 @@
 // Service Worker for ANA/JAL mile calculators (shared).
 // Network-first: always try the network so updates arrive immediately;
 // the cache is only an offline fallback, so a stale version never sticks.
-const CACHE_NAME = 'mile-calcs-v1';
+const CACHE_NAME = 'mile-calcs-v2';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
@@ -35,7 +35,8 @@ self.addEventListener('fetch', (event) => {
           const copy = response.clone();
           caches
             .open(CACHE_NAME)
-            .then((cache) => cache.put(event.request, copy));
+            .then((cache) => cache.put(event.request, copy))
+            .catch(() => {});
         }
         return response;
       })
