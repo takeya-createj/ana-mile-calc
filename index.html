@@ -380,26 +380,10 @@
           <div class="body"><p style="margin:0">スターアライアンス加盟航空会社とコネクティングパートナー（吉祥航空）は、複数の航空会社を自由に組み合わせて旅程を組めます。</p></div>
         </details>
 
-        <div class="row" id="starFilterRow" hidden>
-          <p class="lab">航空会社から絞り込む（任意）</p>
-          <select id="starAirSel" aria-label="スターアライアンス特典・航空会社で絞り込む"></select>
-          <p class="date-note" id="starFilterNote" hidden>スターアライアンス特典は航空会社を組み合わせられるため、直行便のない目的地にも乗り継ぎで行けます。必要マイルは最終目的地のゾーンで決まります。</p>
-        </div>
-
         <details class="ref inline" id="indivRuleRow" hidden style="margin-bottom:14px">
           <summary>個別提携社特典のルール</summary>
           <div class="body"><p style="margin:0">個別提携社特典は、その航空会社1社の運航便だけで全旅程を組む必要があります。他の航空会社との組み合わせはできません。</p></div>
         </details>
-
-        <div class="row" id="indivRow" hidden>
-          <p class="lab">航空会社を選ぶ</p>
-          <select id="indivAirSel" aria-label="個別提携社特典・航空会社を選ぶ"></select>
-          <details class="ref inline inrow" id="indivCardFold">
-            <summary id="indivCardSummary">航空会社のルール・注意書き</summary>
-            <div class="body"><div id="indivCard"></div></div>
-          </details>
-          <p class="date-note" id="indivDirectNote" hidden>直行都市以外へは、その会社の乗り継ぎ便で全区間を組める場合があります。必要マイルは最終目的地のゾーンで決まります。</p>
-        </div>
 
         <div class="row">
           <p class="lab">地域から絞り込む</p>
@@ -482,6 +466,22 @@
             <button type="button" data-v="4">4人</button>
             <button type="button" data-v="5">5人</button>
           </div>
+        </div>
+
+        <div class="row" id="starFilterRow" hidden>
+          <p class="lab">航空会社から絞り込む（任意）</p>
+          <select id="starAirSel" aria-label="スターアライアンス特典・航空会社で絞り込む"></select>
+          <p class="date-note" id="starFilterNote" hidden>スターアライアンス特典は航空会社を組み合わせられるため、直行便のない目的地にも乗り継ぎで行けます。必要マイルは最終目的地のゾーンで決まります。</p>
+        </div>
+
+        <div class="row" id="indivRow" hidden>
+          <p class="lab">航空会社を選ぶ</p>
+          <select id="indivAirSel" aria-label="個別提携社特典・航空会社を選ぶ"></select>
+          <details class="ref inline inrow" id="indivCardFold">
+            <summary id="indivCardSummary">航空会社のルール・注意書き</summary>
+            <div class="body"><div id="indivCard"></div></div>
+          </details>
+          <p class="date-note" id="indivDirectNote" hidden>直行都市以外へは、その会社の乗り継ぎ便で全区間を組める場合があります。必要マイルは最終目的地のゾーンで決まります。</p>
         </div>
 
       </section>
@@ -567,6 +567,7 @@
             <li>小児も大人と同じマイル数です。座席を使わない幼児は別扱いになります。</li>
             <li>必要マイルのほかに、燃油サーチャージ（該当する場合）・諸税・空港使用料などが現金でかかります。</li>
             <li>国内線の2区間利用（乗り継ぎ）は、1区間ごとの必要マイルの合算です。</li>
+            <li>データの出典：このツールのマイル数は、ANA公式の必要マイルチャート（2025年6月24日改定分）に基づきます（2026年11月26日確認）。</li>
           </ul>
         </div>
       </details>
