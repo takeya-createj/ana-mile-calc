@@ -61,9 +61,21 @@
       .lbl:first-child{ margin-top:0; }
       .row2{ display:grid; grid-template-columns:1fr auto 1fr; gap:8px; align-items:end; }
       .row2 .swap{ align-self:center; }
-      select, input[type="number"], input[type="text"]{
+      select, input[type="number"], input[type="text"], input[type="date"]{
         width:100%; font:inherit; font-size:15px; color:var(--ink);
         background:var(--card-solid); border:1px solid var(--line); border-radius:12px; padding:11px 12px; min-height:48px;
+      }
+      .date-hint{ margin:7px 2px 0; font-size:12px; line-height:1.7; color:var(--ink-faint); font-weight:600; }
+      .date-banner{
+        margin:0 0 14px; border-radius:12px; padding:12px 14px; font-size:13.5px; line-height:1.75; font-weight:700;
+      }
+      .date-banner.ok{ background:#e7f6ee; color:#0a5c36; border:1px solid #b7e4c9; }
+      .date-banner.warn{ background:#fdf3e0; color:#7a4a00; border:1px solid #ecd29a; }
+      .date-banner.info{ background:var(--field); color:var(--ink-soft); border:1px solid var(--line); }
+      .date-banner .db-sub{ display:block; font-size:12px; font-weight:600; margin-top:2px; opacity:.9; }
+      @media (prefers-color-scheme: dark){
+        .date-banner.ok{ background:#123527; color:#a7e8c3; border-color:#1e5c3f; }
+        .date-banner.warn{ background:#3d2c10; color:#f5d48a; border-color:#6b4d15; }
       }
       .swap{
         width:44px; height:44px; border-radius:50%; border:1px solid var(--line); background:var(--card-solid);
@@ -156,7 +168,7 @@
         .row2{ grid-template-columns:1fr auto 1fr; gap:6px; }
       }
     </style>
-  <link rel="apple-touch-icon" sizes="512x512" href="https://e-life-net.com/site/wp-content/uploads/2026/11/icon-jal.png"><link rel="icon" sizes="512x512" href="https://e-life-net.com/site/wp-content/uploads/2026/11/icon-jal.png"></head>
+  </head>
   <body>
     <div class="wrap">
       <header>
@@ -221,6 +233,7 @@
             <button type="button" data-v="4">4人</button>
             <button type="button" data-v="5">5人</button>
           </div>
+          <div class="note" style="margin-top:16px">JAL国内線にシーズン制はありません（必要マイルは基本マイル＋特典航空券PLUSで決まります）。そのため国内線では日付によるシーズン判定は行いません。</div>
         </div>
 
         <div class="card" id="dom-result"></div>
@@ -247,6 +260,12 @@
               <button type="button" data-v="py">プレエコ</button>
               <button type="button" data-v="c">ビジネス</button>
               <button type="button" data-v="f">ファースト</button>
+            </div>
+
+            <div id="jal-date-box">
+              <p class="lbl">搭乗日（任意）— 日付を選ぶとシーズンを自動判定します</p>
+              <input type="date" id="jal-date" aria-label="搭乗日" />
+              <p class="date-hint">ファーストクラスは搭乗日のシーズン（L／R／H）で必要マイルが決まります。日付を入力した場合は、手動のシーズン選択より日付判定が優先されます。対応範囲：2026年4月1日〜2028年3月31日（全方面共通・搭乗日ベース）。日付を消すと手動選択／全表示に戻ります。</p>
             </div>
 
             <div id="jal-season-box" class="hidden">
@@ -642,11 +661,57 @@ var OW_BANDS = [
 ];
 var CLASS_NAME = { y:"エコノミー", py:"プレミアムエコノミー", c:"ビジネス", f:"ファースト" };
 
+/* ---------- JAL国際線 シーズンカレンダー（全方面共通・JAL公式確認済み／搭乗日ベース） ---------- */
+var SEASON_RANGES = [
+  ["2026-04-01","2026-04-23","L"],["2026-04-24","2026-05-11","H"],
+  ["2026-05-12","2026-07-08","R"],["2026-07-09","2026-08-25","H"],
+  ["2026-08-26","2026-12-12","R"],["2026-12-13","2027-01-12","H"],
+  ["2027-01-13","2027-02-28","L"],["2027-03-01","2027-03-31","R"],
+  ["2027-04-01","2027-04-22","L"],["2027-04-23","2027-05-09","H"],
+  ["2027-05-10","2027-07-15","R"],["2027-07-16","2027-08-29","H"],
+  ["2027-08-30","2027-12-16","R"],["2027-12-17","2028-01-10","H"],
+  ["2028-01-11","2028-02-29","L"],["2028-03-01","2028-03-31","R"]
+];
+var SEASON_JNAME = { L:"ローシーズン", R:"レギュラーシーズン", H:"ハイシーズン" };
+function lookupSeason(ds){
+  for(var i=0;i<SEASON_RANGES.length;i++){
+    if(ds>=SEASON_RANGES[i][0] && ds<=SEASON_RANGES[i][1]) return SEASON_RANGES[i][2];
+  }
+  return null;
+}
+function formatJPDate(ds){
+  var p = ds.split("-");
+  if(p.length!==3) return ds;
+  return parseInt(p[1],10)+"月"+parseInt(p[2],10)+"日";
+}
+function jalDateInfo(){
+  var ds = S.jalDate || "";
+  if(!ds) return { has:false, outOfRange:false, season:null, ds:"" };
+  if(ds < "2026-04-01" || ds > "2028-03-31") return { has:true, outOfRange:true, season:null, ds:ds };
+  var s = lookupSeason(ds);
+  return { has:true, outOfRange:false, season:s, ds:ds };
+}
+function dateBannerHtml(){
+  var info = jalDateInfo();
+  if(!info.has) return "";
+  if(info.outOfRange){
+    var sub = (S.jalClass==="f")
+      ? formatJPDate(info.ds)+'は判定できないため、手動のシーズン選択または全シーズン表示で表示しています。'
+      : formatJPDate(info.ds)+'は判定できないため、通常の表示で表示しています。';
+    return '<div class="date-banner warn">この日付はシーズン判定の対応範囲外です（対応範囲：2026年4月1日〜2028年3月31日）<span class="db-sub">'+sub+'</span></div>';
+  }
+  if(!info.season) return "";
+  if(S.jalClass==="f"){
+    return '<div class="date-banner ok">'+formatJPDate(info.ds)+'は '+info.season+'シーズンです（'+SEASON_JNAME[info.season]+'）<span class="db-sub">日付による判定を優先しています。手動で選んだシーズンではなく、搭乗日のシーズンで表示しています。</span></div>';
+  }
+  return '<div class="date-banner info">このクラスはシーズンでマイルが変わりません（基本マイル＋特典航空券PLUSの変動制です）<span class="db-sub">'+formatJPDate(info.ds)+'は '+info.season+'シーズンにあたりますが、エコノミー／プレミアムエコノミー／ビジネスではシーズンによるマイルの違いはありません。</span></div>';
+}
+
 /* ---------- 状態 ---------- */
 var S = {
   mode:"dom",
   domMode:"airport", domZone:"C", domClass:"y", domTrip:"one", domPax:"1",
-  intlType:"jal", jalDest:"honolulu", jalClass:"y", jalTrip:"one", jalSeason:"all", jalPax:"1",
+  intlType:"jal", jalDest:"honolulu", jalClass:"y", jalTrip:"one", jalSeason:"all", jalPax:"1", jalDate:"",
   distClass:"c", distPax:"1", distMode:"city", distTrip:"round", distRegion:"all"
 };
 var DIST_REGIONS = ["all","東アジア","東南アジア","南アジア","オセアニア","ハワイ・グアム","北米","中南米","ヨーロッパ","中東","アフリカ"];
@@ -803,13 +868,15 @@ function renderJal(){
 
   if(S.jalClass==="f"){
     if(!d.f){
-      box.innerHTML = '<p class="result-head">日本 ⇄ '+d.name+'</p>'+
+      box.innerHTML = dateBannerHtml()+'<p class="result-head">日本 ⇄ '+d.name+'</p>'+
         '<div class="note center">'+(d.fNote || "この路線にファーストクラスの設定はありません。")+'<br>エコノミー／プレミアムエコノミー／ビジネスでご確認ください。</div>';
       return;
     }
     var names = ["L","R","H"], jname = ["ローシーズン","レギュラーシーズン","ハイシーズン"], kcls = ["k-l","k-r","k-h"];
     var paxF = paxNum(S.jalPax);
-    var selIdx = names.indexOf(S.jalSeason);
+    var dInfo = jalDateInfo();
+    var effectiveSeason = (dInfo.has && !dInfo.outOfRange && dInfo.season) ? dInfo.season : S.jalSeason;
+    var selIdx = names.indexOf(effectiveSeason);
     var isAll = selIdx < 0;
     var cells = "", gridCls = "", totalHtml = "", metaSeason = "";
     if(isAll){
@@ -828,6 +895,7 @@ function renderJal(){
       totalHtml = totalBarHtml(paxF, d.f[selIdx]*mult*paxF, null);
     }
     box.innerHTML =
+      dateBannerHtml()+
       '<p class="result-head">日本 ⇄ '+d.name+'（ファーストクラス）</p>'+
       '<p class="result-meta">'+tripLbl+'・'+d.area+'・'+metaSeason+'<span class="tag">固定マイル</span></p>'+
       '<div class="miles-grid'+gridCls+'">'+cells+'</div>'+
@@ -841,7 +909,7 @@ function renderJal(){
 
   var base = d[S.jalClass];
   if(base===null || base===undefined){
-    box.innerHTML = '<p class="result-head">日本 ⇄ '+d.name+'</p>'+
+    box.innerHTML = dateBannerHtml()+'<p class="result-head">日本 ⇄ '+d.name+'</p>'+
       '<div class="note center">この路線に'+CLASS_NAME[S.jalClass]+'の設定はありません。他のクラスでご確認ください。</div>';
     return;
   }
@@ -851,6 +919,7 @@ function renderJal(){
     '<div class="mile-box"><div class="kn">PLUS利用時の最大（1人）</div><div class="v">〜'+fmt(plusMax*mult)+'</div><div class="u">マイル</div></div>' :
     '<div class="mile-box"><div class="kn">PLUS利用時</div><div class="v" style="font-size:16px;padding:6px 0 2px">基本＋追加で変動</div><div class="u">上限は路線・日付で異なります</div></div>';
   box.innerHTML =
+    dateBannerHtml()+
     '<p class="result-head">日本 ⇄ '+d.name+'</p>'+
     '<p class="result-meta">'+tripLbl+'・'+d.area+'・'+CLASS_NAME[S.jalClass]+'<span class="tag">基本マイル</span></p>'+
     '<div class="miles-grid two">'+
@@ -1015,6 +1084,11 @@ function render(){
   segWire("jal-trip", "jalTrip");
   segWire("jal-season", "jalSeason");
   segWire("jal-pax", "jalPax");
+  var jalDateEl = document.getElementById("jal-date");
+  if(jalDateEl){
+    jalDateEl.addEventListener("change", function(){ S.jalDate = jalDateEl.value || ""; render(); });
+    jalDateEl.addEventListener("input", function(){ S.jalDate = jalDateEl.value || ""; render(); });
+  }
   segWire("dist-class", "distClass");
   segWire("dist-pax", "distPax");
   segWire("dist-mode", "distMode");
