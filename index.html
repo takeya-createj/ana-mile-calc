@@ -62,7 +62,7 @@
       .lead b{ color:#fff; }
       .tabs{
         display:flex; gap:6px; background:rgba(255,255,255,.55); border:1px solid rgba(255,255,255,.35);
-        border-radius:16px; padding:6px; margin:0 0 18px;
+        border-radius:999px; padding:6px; margin:0 0 18px;
         box-shadow:var(--shadow); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
       }
       @media (prefers-color-scheme: dark){
@@ -70,7 +70,7 @@
       }
       .tabs button{
         flex:1 1 0; border:1px solid transparent; background:transparent; color:var(--ink2);
-        border-radius:10px; padding:10px 12px; cursor:pointer; font-size:17px; font-weight:700;
+        border-radius:999px; padding:10px 12px; cursor:pointer; font-size:17px; font-weight:700;
         min-height:3rem; line-height:1.3; letter-spacing:.02em;
       }
       .tabs button.active{
@@ -94,21 +94,28 @@
       .row{ margin:0 0 14px; }
       .row:last-child{ margin-bottom:0; }
       .lab{ font-size:13px; font-weight:700; color:var(--ink2); margin:0 0 6px; letter-spacing:.04em; }
-      .seg{ display:flex; flex-wrap:wrap; gap:6px; }
+      .seg{ display:flex; flex-wrap:wrap; gap:2px; background:var(--chip); border-radius:999px; padding:4px; }
       .seg button{
-        border:1px solid var(--line); background:var(--chip); color:var(--ink);
-        border-radius:9px; padding:6px 13px; cursor:pointer; font-size:15px; min-height:2.5rem;
+        flex:1 1 auto; border:none; background:transparent; color:var(--ink2);
+        border-radius:999px; padding:7px 12px; cursor:pointer; font-size:15px; min-height:2.5rem;
+        font-weight:600; white-space:nowrap;
       }
-      .seg button.active{ background:var(--sky); border-color:var(--sky); color:#fff; font-weight:700; }
+      .seg button.active{ background:var(--card-solid); color:var(--sky); font-weight:800; box-shadow:0 1px 5px rgba(10,35,60,.20); }
       .seg button:disabled{ opacity:.38; cursor:not-allowed; }
-      .seg.small button{ font-size:13.5px; padding:4px 10px; min-height:2.25rem; }
+      .seg button:focus-visible{ outline:2px solid var(--sky); outline-offset:2px; }
+      @media (prefers-color-scheme: dark){
+        .seg button.active{ background:var(--sky); color:#fff; box-shadow:none; }
+      }
+      .seg.wide{ border-radius:24px; }
+      .seg.small{ border-radius:20px; }
+      .seg.small button{ font-size:13.5px; padding:5px 10px; min-height:2.25rem; }
       select{
-        width:100%; border:1px solid var(--line); border-radius:9px; background:var(--card-solid); color:var(--ink);
-        padding:6px 10px; font-size:16px;
+        width:100%; border:1px solid var(--line); border-radius:12px; background:var(--card-solid); color:var(--ink);
+        padding:9px 12px; font-size:16px;
       }
       input[type="date"]{
-        width:100%; border:1px solid var(--line); border-radius:9px; background:var(--card-solid); color:var(--ink);
-        padding:6px 10px; font-size:16px; color-scheme:light dark;
+        width:100%; border:1px solid var(--line); border-radius:12px; background:var(--card-solid); color:var(--ink);
+        padding:9px 12px; font-size:16px; color-scheme:light dark;
       }
       input[type="date"]:focus-visible{ outline:2px solid var(--sky); outline-offset:2px; }
       .date-note{ font-size:13px; color:var(--ink2); margin:6px 0 0; }
@@ -118,6 +125,10 @@
         background:var(--card-solid); border:1.5px solid var(--line); border-radius:16px;
         padding:16px; margin-top:16px;
       }
+      .result-card .result-panel{ margin-top:0; border:none; background:transparent; padding:0; }
+      .result-card .notice{ margin-top:0; margin-bottom:12px; }
+      .result-card .notice:last-child{ margin-bottom:0; }
+      .result-card .result-panel + .notice{ margin-top:12px; margin-bottom:0; }
       .result-head{ font-size:16.5px; font-weight:800; margin:0 0 2px; line-height:1.4; }
       .result-meta{ font-size:13px; font-weight:700; color:var(--sky); margin:0 0 12px; line-height:1.55; }
       .result-meta .tag{
@@ -202,8 +213,23 @@
       .cmp-row .c-lab{ color:var(--ink2); }
       .cmp-row .c-val{ font-weight:800; white-space:nowrap; text-align:right; }
       details.ref{ background:var(--card); border:1px solid var(--line); border-radius:20px; padding:4px 16px; margin:0 0 18px; box-shadow:var(--shadow); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); }
-      details.ref summary{ cursor:pointer; font-weight:700; padding:12px 0; min-height:2.75rem; display:flex; align-items:center; }
+      details.ref summary{ cursor:pointer; font-weight:700; padding:12px 0; min-height:3rem; display:flex; align-items:center; list-style:none; }
+      details.ref summary::-webkit-details-marker{ display:none; }
+      details.ref summary::before{
+        content:""; flex:none; width:0; height:0; margin-right:10px;
+        border-top:6px solid transparent; border-bottom:6px solid transparent; border-left:9px solid var(--sky);
+        transition:transform .18s ease;
+      }
+      details.ref[open ] summary::before{ transform:rotate(90deg); }
+      details.ref summary:focus-visible{ outline:2px solid var(--sky); outline-offset:2px; }
       details.ref .body{ padding:0 0 16px; font-size:14px; }
+      details.ref.inline{ background:var(--card-solid); border-radius:14px; padding:2px 14px; box-shadow:none; backdrop-filter:none; -webkit-backdrop-filter:none; }
+      details.ref.inline.inrow{ margin:10px 0 0; }
+      details.ref .body .seasonbox{ margin-top:0; }
+      details.ref .body .fuel{ margin-top:0; border-top:none; padding-top:0; }
+      details.ref .body .compare{ margin-top:0; border:none; padding:0; }
+      details.ref .body .airline-card{ margin-top:0; }
+      @media (prefers-reduced-motion: reduce){ details.ref summary::before{ transition:none; } }
       details.ref h3{ font-size:15.5px; margin:16px 0 6px; }
       details.ref h3:first-child{ margin-top:2px; }
       details.ref p{ margin:0 0 8px; color:var(--ink2); }
@@ -330,8 +356,13 @@
           </div>
         </div>
 
-        <div id="domResult"></div>
       </section>
+
+      <div id="domOut">
+        <section class="card result-card" aria-label="国内線の計算結果">
+          <div id="domResult"></div>
+        </section>
+      </div>
 
       <!-- ============ 国際線 ============ -->
       <section class="card" id="intlSec" role="tabpanel" aria-labelledby="tabIntl" hidden>
@@ -340,16 +371,17 @@
 
         <div class="row">
           <p class="lab">利用する航空会社</p>
-          <div class="seg" id="modeSeg">
+          <div class="seg wide" id="modeSeg">
             <button type="button" data-v="ana" class="active">ANA便</button>
             <button type="button" data-v="star">スターアライアンス特典</button>
             <button type="button" data-v="indiv">個別提携社特典</button>
           </div>
         </div>
 
-        <div class="row" id="starRuleRow" hidden>
-          <div class="rule-box"><p>スターアライアンス加盟航空会社とコネクティングパートナー（吉祥航空）は、複数の航空会社を自由に組み合わせて旅程を組めます。世界一周旅程はスターアライアンス特典のみが対象です。</p></div>
-        </div>
+        <details class="ref inline" id="starRuleRow" hidden style="margin-bottom:14px">
+          <summary>スターアライアンス特典のルール</summary>
+          <div class="body"><p style="margin:0">スターアライアンス加盟航空会社とコネクティングパートナー（吉祥航空）は、複数の航空会社を自由に組み合わせて旅程を組めます。世界一周旅程はスターアライアンス特典のみが対象です。</p></div>
+        </details>
 
         <div class="row" id="starFilterRow" hidden>
           <p class="lab">航空会社から絞り込む（任意）</p>
@@ -357,14 +389,18 @@
           <p class="date-note" id="starFilterNote" hidden>スターアライアンス特典は航空会社を組み合わせられるため、直行便のない目的地にも乗り継ぎで行けます。必要マイルは最終目的地のゾーンで決まります。</p>
         </div>
 
-        <div class="row" id="indivRuleRow" hidden>
-          <div class="rule-box"><p>個別提携社特典は、その航空会社1社の運航便だけで全旅程を組む必要があります。他の航空会社との組み合わせはできません。</p></div>
-        </div>
+        <details class="ref inline" id="indivRuleRow" hidden style="margin-bottom:14px">
+          <summary>個別提携社特典のルール</summary>
+          <div class="body"><p style="margin:0">個別提携社特典は、その航空会社1社の運航便だけで全旅程を組む必要があります。他の航空会社との組み合わせはできません。</p></div>
+        </details>
 
         <div class="row" id="indivRow" hidden>
           <p class="lab">航空会社を選ぶ</p>
           <select id="indivAirSel" aria-label="個別提携社特典・航空会社を選ぶ"></select>
-          <div id="indivCard"></div>
+          <details class="ref inline inrow" id="indivCardFold">
+            <summary id="indivCardSummary">航空会社のルール・注意書き</summary>
+            <div class="body"><div id="indivCard"></div></div>
+          </details>
           <p class="date-note" id="indivDirectNote" hidden>直行都市以外へは、その会社の乗り継ぎ便で全区間を組める場合があります。必要マイルは最終目的地のゾーンで決まります。</p>
         </div>
 
@@ -390,7 +426,7 @@
 
         <div class="row">
           <p class="lab">クラス</p>
-          <div class="seg" id="clsSeg">
+          <div class="seg wide" id="clsSeg">
             <button type="button" data-v="Y" class="active">エコノミー</button>
             <button type="button" data-v="PY" id="clsPyBtn">プレミアムエコノミー</button>
             <button type="button" data-v="C">ビジネス</button>
@@ -451,11 +487,16 @@
           </div>
         </div>
 
-        <div id="intlResult"></div>
+      </section>
+
+      <div id="intlOut" hidden>
+        <section class="card result-card" aria-label="国際線の計算結果">
+          <div id="intlResult"></div>
+        </section>
         <div id="seasonBox"></div>
         <div id="fuelBox"></div>
         <div id="compareBox"></div>
-      </section>
+      </div>
 
       <!-- ============ 参考情報 ============ -->
       <details class="ref">
@@ -490,7 +531,12 @@
             <li>このほか、目的地として選べても、提携社の就航状況や特典枠の空席によっては予約できない場合があります。</li>
           </ul>
 
-          <h3>スターアライアンス特典と個別提携社特典の違い</h3>
+        </div>
+      </details>
+
+      <details class="ref">
+        <summary>スターアライアンス特典と個別提携社特典の違い</summary>
+        <div class="body">
           <table class="plain">
             <tr><th>項目</th><th>スターアライアンス特典</th><th>個別提携社特典</th></tr>
             <tr><td>対象</td><td>スターアライアンス加盟航空会社＋コネクティングパートナー（吉祥航空）</td><td>対象9社（下記の一覧）</td></tr>
@@ -502,13 +548,23 @@
             <tr><td>燃油サーチャージ</td><td>運航航空会社の規定による（会社により無料〜高額）</td><td>運航航空会社の規定による（会社により無料〜高額）</td></tr>
           </table>
 
-          <h3>対象航空会社の一覧</h3>
+        </div>
+      </details>
+
+      <details class="ref">
+        <summary>対象航空会社の一覧</summary>
+        <div class="body">
           <p><b>スターアライアンス加盟航空会社（26社）</b>：ANA、エーゲ航空、エア・カナダ、エア・インディア、中国国際航空、ニュージーランド航空、アシアナ航空、オーストリア航空、アビアンカ航空、ブリュッセル航空、コパ航空、クロアチア航空、エジプト航空、エチオピア航空、エバー航空、ITAエアウェイズ、LOTポーランド航空、ルフトハンザ ドイツ航空、深セン航空、シンガポール航空、南アフリカ航空、スイス インターナショナル エアラインズ、TAPポルトガル航空、タイ国際航空、ターキッシュ エアラインズ、ユナイテッド航空</p>
           <p><b>コネクティングパートナー</b>：吉祥航空</p>
           <p><b>個別提携社（9社）</b>：エアドロミティ、マカオ航空、エティハド航空、ユーロウィングス、オリンピック航空、フィリピン航空、ヴァージン・アトランティック航空、ベトナム航空、ヴァージン・オーストラリア</p>
           <p>出典：<a href="https://www.ana.co.jp/ja/jp/guide/amc/award/tk/usage/" target="_blank" rel="noopener">提携航空会社特典航空券 ご利用条件（ANA公式）</a></p>
 
-          <h3>計算の前提</h3>
+        </div>
+      </details>
+
+      <details class="ref">
+        <summary>計算の前提</summary>
+        <div class="body">
           <ul>
             <li>片道の必要マイルは、往復チャートの半分です（ANA便・提携社とも、2025年6月24日以降の予約・発券分）。</li>
             <li>ANA便の往復で往路と復路のシーズンが異なる場合、実際は「往路の往復マイル÷2＋復路の往復マイル÷2」で計算します。このツールでは1つのシーズンで往復を計算しているので、シーズンをまたぐ旅程では片道ずつ確認してください。</li>
@@ -931,6 +987,8 @@
       var isDom = (tab==="dom");
       document.getElementById("domSec").hidden = !isDom;
       document.getElementById("intlSec").hidden = isDom;
+      document.getElementById("domOut").hidden = !isDom;
+      document.getElementById("intlOut").hidden = isDom;
       var tabDom = document.getElementById("tabDom");
       var tabIntl = document.getElementById("tabIntl");
       tabDom.classList.toggle("active", isDom);
@@ -1094,6 +1152,7 @@
     function indivInfo(){ return INDIV_INFO[S.indivAir]; }
     function renderIndivCard(){
       var card = document.getElementById("indivCard");
+      document.getElementById("indivCardSummary").textContent = S.indivAir + "のルール・注意書き";
       var info = indivInfo();
       var lines = info.lines.map(function(t){ return "<p>" + t + "</p>"; }).join("");
       card.innerHTML = '<div class="airline-card"><h3>' + S.indivAir + '</h3>' +
@@ -1229,11 +1288,11 @@
       var box = document.getElementById("seasonBox");
       if(S.mode!=="ana" || !dest.ana){ box.innerHTML = ""; return; }
       var g = seasonGroup(dest.az);
-      box.innerHTML = '<div class="seasonbox"><h3>2026年のシーズン早見：' + g.name + '</h3>' +
+      box.innerHTML = '<details class="ref"><summary>2026年のシーズン早見（' + g.name + '）</summary><div class="body"><div class="seasonbox">' +
         '<table><tr><td>ロー（L）</td><td>' + g.L + '</td></tr>' +
         '<tr><td>レギュラー（R）</td><td>' + g.R + '</td></tr>' +
         '<tr><td>ハイ（H）</td><td>' + g.H + '</td></tr></table>' +
-        '<p style="margin:6px 0 0;color:var(--ink2)">往路と復路でシーズンが違う場合は、片道ずつ計算して合算します。</p></div>';
+        '<p style="margin:6px 0 0;color:var(--ink2)">往路と復路でシーズンが違う場合は、片道ずつ計算して合算します。</p></div></div></details>';
     }
 
     function renderFuel(dest, pax){
@@ -1244,20 +1303,20 @@
         var sectors = (S.trip==="round") ? 2 : 1;
         var perPerson = f.amt * sectors;
         var total = perPerson * pax;
-        box.innerHTML = '<div class="fuel"><h3>燃油サーチャージ（ANA便・別途現金）</h3>' +
+        box.innerHTML = '<details class="ref"><summary>燃油サーチャージ（ANA便・別途現金）</summary><div class="body"><div class="fuel">' +
           '<p>' + f.label + '：片道1区間 <b>' + yen(f.amt) + '</b>（2026年11〜12月発券分・日本発）</p>' +
           '<p>' + (S.trip==="round" ? "往復" : "片道") + '1人あたり <b>' + yen(perPerson) + '</b>' +
           (pax>1 ? '　／　' + pax + '人合計 <b>' + yen(total) + '</b>' : '') + '</p>' +
-          '<p>燃油サーチャージは発券日ベースで2か月ごとに改定されます。金額は目安で、諸税・空港使用料は別途かかります。乗り継ぎがある旅程では区間ごとに加算されます。</p></div>';
+          '<p>燃油サーチャージは発券日ベースで2か月ごとに改定されます。金額は目安で、諸税・空港使用料は別途かかります。乗り継ぎがある旅程では区間ごとに加算されます。</p></div></div></details>';
       } else {
         function chips(list){ return list.map(function(n){ return "<span>" + n + "</span>"; }).join(""); }
-        box.innerHTML = '<div class="fuel"><h3>燃油サーチャージ（提携特典）</h3>' +
+        box.innerHTML = '<details class="ref"><summary>燃油サーチャージ（提携特典）</summary><div class="body"><div class="fuel">' +
           '<p>ANAの提携特典（スターアライアンス特典／個別提携社特典）は、<b>運航会社が燃油サーチャージを徴収しない会社なら、諸税だけで発券できます</b>。ANA便では全路線でかかる燃油を避けられるのが、提携特典を使う大きな利点です。金額ではなく、航空会社ごとの水準で見てください。</p>' +
           '<div class="tier t-none"><span class="tlab">燃油サーチャージなし</span><div class="chips">' + chips(FUEL_NONE) + '</div></div>' +
           '<div class="tier t-high"><span class="tlab">高い（運航会社のサーチャージが加算）</span><div class="chips">' + chips(FUEL_HIGH) + '</div></div>' +
           '<p style="margin-bottom:6px">ルフトハンザグループ各社は、運航会社の燃油サーチャージがそのまま上乗せされ、欧州往復では数万円規模になることがあります。</p>' +
           '<div class="tier t-unk"><span class="tlab">会社により異なる（要確認）</span><div class="chips">' + chips(FUEL_UNK) + '</div></div>' +
-          '<p>上記以外の提携社は一律には言えません。発券画面の合計額（マイル＋現金）で必ず確認してください。区分は発券実例をもとにした目安です。</p></div>';
+          '<p>上記以外の提携社は一律には言えません。発券画面の合計額（マイル＋現金）で必ず確認してください。区分は発券実例をもとにした目安です。</p></div></div></details>';
       }
     }
 
@@ -1265,7 +1324,7 @@
       var box = document.getElementById("compareBox");
       var partnerName = (S.mode==="indiv") ? "個別提携社特典" : "スターアライアンス特典";
       if(S.cls==="PY"){
-        box.innerHTML = '<div class="compare"><h3>ANA便と' + partnerName + 'の比較</h3><p style="margin:0">' + partnerName + 'にプレミアムエコノミーの設定がないため、このクラスでは比較できません。</p></div>';
+        box.innerHTML = '<details class="ref"><summary>ANA便と' + partnerName + 'の比較</summary><div class="body"><div class="compare"><p style="margin:0">' + partnerName + 'にプレミアムエコノミーの設定がないため、このクラスでは比較できません。</p></div></div></details>';
         return;
       }
       var pm = partnerMiles(dest, S.cls, "1A", S.trip);
@@ -1284,9 +1343,9 @@
         rowsHtml = '<div class="cmp-row"><span class="c-lab">ANA便（' + SEASON_NAME[S.season] + '）</span><span class="c-val">' + aTxt + '</span></div>';
       }
       rowsHtml += '<div class="cmp-row"><span class="c-lab">' + partnerName + '（シーズンなし）</span><span class="c-val">' + pTxt + '</span></div>';
-      box.innerHTML = '<div class="compare"><h3>ANA便と' + partnerName + 'の比較（' + tripLabel + '・1人あたり・' + CLS_NAME[S.cls] + '）</h3>' +
+      box.innerHTML = '<details class="ref"><summary>ANA便と' + partnerName + 'の比較（' + tripLabel + '・1人あたり・' + CLS_NAME[S.cls] + '）</summary><div class="body"><div class="compare">' +
         rowsHtml +
-        '<p style="margin:6px 0 0;color:var(--ink2)">ANA便はシーズンで変動し、' + partnerName + 'は年中同じマイル数です。現金でかかる燃油サーチャージは、ANA便は全路線で必要、提携特典は航空会社により無料〜高額と差があります。</p></div>';
+        '<p style="margin:6px 0 0;color:var(--ink2)">ANA便はシーズンで変動し、' + partnerName + 'は年中同じマイル数です。現金でかかる燃油サーチャージは、ANA便は全路線で必要、提携特典は航空会社により無料〜高額と差があります。</p></div></div></details>';
     }
 
     function render(){ renderDom(); renderIntl(); }
