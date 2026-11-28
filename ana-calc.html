@@ -217,6 +217,14 @@
       .seasonbox table{ width:100%; border-collapse:collapse; font-variant-numeric:tabular-nums; }
       .seasonbox td{ padding:2px 0; vertical-align:top; }
       .seasonbox td:first-child{ font-weight:700; white-space:nowrap; padding-right:10px; }
+      .clear-row{ display:flex; justify-content:flex-end; margin:0 0 14px; }
+      .clear-btn{
+        border:1px solid var(--line); background:var(--card); color:var(--ink2);
+        border-radius:9px; padding:6px 14px; cursor:pointer; font-size:14px; font-weight:700;
+        min-height:2.5rem; box-shadow:var(--shadow); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+      }
+      .clear-btn:hover{ border-color:var(--sky); color:var(--sky); }
+      .clear-btn:focus-visible{ outline:2px solid var(--sky); outline-offset:2px; }
       footer{ font-size:13px; color:var(--ink2); }
       footer p{ margin:0 0 8px; }
       footer a{ color:var(--sky); }
@@ -235,6 +243,10 @@
       <div class="tabs" role="tablist" aria-label="国内線と国際線の切り替え">
         <button type="button" id="tabDom" role="tab" aria-selected="true" aria-controls="domSec" class="active">国内線</button>
         <button type="button" id="tabIntl" role="tab" aria-selected="false" aria-controls="intlSec">国際線</button>
+      </div>
+
+      <div class="clear-row">
+        <button type="button" id="clearBtn" class="clear-btn">入力をクリア</button>
       </div>
 
       <!-- ============ 国内線 ============ -->
@@ -841,6 +853,59 @@
       starAir:"", indivAir:"ベトナム航空",
       dateOut:"", dateRet:""
     };
+    var DEFAULTS = JSON.parse(JSON.stringify(S));
+    var STORAGE_KEY = "anaMileCalcState.v1";
+    var _suppressSave = false;
+    function saveState(){
+      if(_suppressSave) return;
+      try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(S)); }catch(e){}
+    }
+    function removeSavedState(){
+      try{ localStorage.removeItem(STORAGE_KEY); }catch(e){}
+    }
+    function isDateStr(v){ return typeof v==="string" && (v==="" || /^\d{4}-\d{2}-\d{2}$/.test(v)); }
+    function loadState(){
+      var parsed = null;
+      try{
+        var raw = localStorage.getItem(STORAGE_KEY);
+        if(!raw) return;
+        parsed = JSON.parse(raw);
+      }catch(e){ return; }
+      if(!parsed || typeof parsed!=="object" || Array.isArray(parsed)) return;
+      function pickStr(key, allowed){
+        if(typeof parsed[key]==="string" && allowed.indexOf(parsed[key])>=0) S[key] = parsed[key];
+      }
+      function pickInt(key, min, max){
+        var n = parseInt(parsed[key],10);
+        if(!isNaN(n) && n>=min && n<=max) S[key] = n;
+      }
+      function pickDate(key){
+        if(isDateStr(parsed[key])) S[key] = parsed[key];
+      }
+      pickStr("tab", ["dom","intl"]);
+      pickStr("domMode", ["airport","band"]);
+      if(typeof parsed.domFrom==="string" && (parsed.domFrom in DOM_AP_NAME)) S.domFrom = parsed.domFrom;
+      if(typeof parsed.domTo==="string" && (parsed.domTo in DOM_AP_NAME)) S.domTo = parsed.domTo;
+      pickInt("domBand", 0, 3);
+      pickStr("domSeason", ["none","L","R","H"]);
+      pickStr("domTrip", ["one","round"]);
+      pickInt("domPax", 1, 5);
+      pickDate("domDateOut"); pickDate("domDateRet");
+      pickStr("mode", ["ana","star","indiv"]);
+      pickStr("region", ["all"].concat(Object.keys(REGIONS)));
+      pickInt("dest", -1, DESTS.length-1);
+      pickStr("cls", ["Y","PY","C","F"]);
+      pickStr("season", ["none","L","R","H"]);
+      pickStr("trip", ["one","round"]);
+      pickInt("pax", 1, 5);
+      pickStr("ptype", ["1A","1B"]);
+      if(typeof parsed.starAir==="string" && (parsed.starAir==="" || STAR_AIRLINES.indexOf(parsed.starAir)>=0)) S.starAir = parsed.starAir;
+      if(typeof parsed.indivAir==="string" && INDIV_AIRLINES.indexOf(parsed.indivAir)>=0) S.indivAir = parsed.indivAir;
+      pickDate("dateOut"); pickDate("dateRet");
+      // seg経由の値は文字列で保持される場合があるため、数値項目は数値にそろえる
+      S.domBand = parseInt(S.domBand,10); S.domPax = parseInt(S.domPax,10);
+      S.pax = parseInt(S.pax,10); S.dest = parseInt(S.dest,10);
+    }
     var SEASON_IDX = { L:0, R:1, H:2 };
     var SEASON_NAME = { L:"ローシーズン", R:"レギュラーシーズン", H:"ハイシーズン" };
     var CLS_NAME = { Y:"エコノミー", PY:"プレミアムエコノミー", C:"ビジネス", F:"ファースト" };
@@ -853,6 +918,7 @@
         S[key] = b.getAttribute("data-v");
         segSet(id, S[key]);
         if(cb) cb();
+        saveState();
         render();
       });
     }
@@ -1271,9 +1337,10 @@
     }
 
     (function init(){
-      document.getElementById("tabDom").addEventListener("click", function(){ setTab("dom"); });
-      document.getElementById("tabIntl").addEventListener("click", function(){ setTab("intl"); });
-      setTab("dom");
+      loadState();
+      document.getElementById("tabDom").addEventListener("click", function(){ setTab("dom"); saveState(); });
+      document.getElementById("tabIntl").addEventListener("click", function(){ setTab("intl"); saveState(); });
+      setTab(S.tab);
       var fromSel = document.getElementById("domFrom");
       var toSel = document.getElementById("domTo");
       DOM_AIRPORTS.forEach(function(a){
@@ -1281,8 +1348,8 @@
         var o2 = document.createElement("option"); o2.value = a[0]; o2.textContent = a[1]; toSel.appendChild(o2);
       });
       fromSel.value = S.domFrom; toSel.value = S.domTo;
-      fromSel.addEventListener("change", function(){ S.domFrom = fromSel.value; render(); });
-      toSel.addEventListener("change", function(){ S.domTo = toSel.value; render(); });
+      fromSel.addEventListener("change", function(){ S.domFrom = fromSel.value; saveState(); render(); });
+      toSel.addEventListener("change", function(){ S.domTo = toSel.value; saveState(); render(); });
 
       segWire("domModeSeg","domMode");
       segWire("domBandSeg","domBand");
@@ -1298,13 +1365,13 @@
         var o = document.createElement("option"); o.value = n; o.textContent = n; starSel.appendChild(o);
       });
       starSel.value = S.starAir;
-      starSel.addEventListener("change", function(){ S.starAir = starSel.value; fillDestSelect(); render(); });
+      starSel.addEventListener("change", function(){ S.starAir = starSel.value; fillDestSelect(); saveState(); render(); });
       var indivSel = document.getElementById("indivAirSel");
       INDIV_AIRLINES.forEach(function(n){
         var o = document.createElement("option"); o.value = n; o.textContent = n; indivSel.appendChild(o);
       });
       indivSel.value = S.indivAir;
-      indivSel.addEventListener("change", function(){ S.indivAir = indivSel.value; fillDestSelect(); render(); });
+      indivSel.addEventListener("change", function(){ S.indivAir = indivSel.value; fillDestSelect(); saveState(); render(); });
       segWire("regionSeg","region", function(){ fillDestSelect(); });
       segWire("clsSeg","cls");
       segWire("seasonSeg","season");
@@ -1312,14 +1379,60 @@
       segWire("tripSeg","trip");
       segWire("paxSeg","pax");
 
+      // 保存済みの状態を各入力要素へ復元
+      segSet("domModeSeg", S.domMode);
+      segSet("domBandSeg", S.domBand);
+      segSet("domSeasonSeg", S.domSeason);
+      segSet("domTripSeg", S.domTrip);
+      segSet("domPaxSeg", S.domPax);
+      segSet("modeSeg", S.mode);
+      segSet("regionSeg", S.region);
+      segSet("clsSeg", S.cls);
+      segSet("seasonSeg", S.season);
+      segSet("ptypeSeg", S.ptype);
+      segSet("tripSeg", S.trip);
+      segSet("paxSeg", S.pax);
+      document.getElementById("domDateOut").value = S.domDateOut;
+      document.getElementById("domDateRet").value = S.domDateRet;
+      document.getElementById("dateOut").value = S.dateOut;
+      document.getElementById("dateRet").value = S.dateRet;
+
       fillDestSelect();
       document.getElementById("destSel").addEventListener("change", function(){
-        S.dest = parseInt(this.value,10); render();
+        S.dest = parseInt(this.value,10); saveState(); render();
       });
-      document.getElementById("dateOut").addEventListener("change", function(){ S.dateOut = this.value; render(); });
-      document.getElementById("dateRet").addEventListener("change", function(){ S.dateRet = this.value; render(); });
-      document.getElementById("domDateOut").addEventListener("change", function(){ S.domDateOut = this.value; render(); });
-      document.getElementById("domDateRet").addEventListener("change", function(){ S.domDateRet = this.value; render(); });
+      document.getElementById("dateOut").addEventListener("change", function(){ S.dateOut = this.value; saveState(); render(); });
+      document.getElementById("dateRet").addEventListener("change", function(){ S.dateRet = this.value; saveState(); render(); });
+      document.getElementById("domDateOut").addEventListener("change", function(){ S.domDateOut = this.value; saveState(); render(); });
+      document.getElementById("domDateRet").addEventListener("change", function(){ S.domDateRet = this.value; saveState(); render(); });
+
+      document.getElementById("clearBtn").addEventListener("click", function(){
+        removeSavedState();
+        _suppressSave = true;
+        Object.keys(DEFAULTS).forEach(function(k){ S[k] = DEFAULTS[k]; });
+        setTab(S.tab);
+        fromSel.value = S.domFrom; toSel.value = S.domTo;
+        starSel.value = S.starAir; indivSel.value = S.indivAir;
+        segSet("domModeSeg", S.domMode);
+        segSet("domBandSeg", S.domBand);
+        segSet("domSeasonSeg", S.domSeason);
+        segSet("domTripSeg", S.domTrip);
+        segSet("domPaxSeg", S.domPax);
+        segSet("modeSeg", S.mode);
+        segSet("regionSeg", S.region);
+        segSet("clsSeg", S.cls);
+        segSet("seasonSeg", S.season);
+        segSet("ptypeSeg", S.ptype);
+        segSet("tripSeg", S.trip);
+        segSet("paxSeg", S.pax);
+        document.getElementById("domDateOut").value = S.domDateOut;
+        document.getElementById("domDateRet").value = S.domDateRet;
+        document.getElementById("dateOut").value = S.dateOut;
+        document.getElementById("dateRet").value = S.dateRet;
+        fillDestSelect();
+        render();
+        _suppressSave = false;
+      });
       render();
     })();
     </script>
