@@ -115,14 +115,18 @@
       .totalbar b{ font-size:19px; font-variant-numeric:tabular-nums; }
       .season-rows{ margin-top:12px; display:grid; gap:8px; }
       .season-row{
-        display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;
+        display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; column-gap:12px; row-gap:2px;
         background:rgba(255,255,255,.13); border-radius:9px; padding:10px 12px;
       }
       .season-row .s-label{ font-weight:700; font-size:15px; line-height:1.35; }
       .season-row .s-label small{ display:block; font-weight:500; opacity:.85; font-size:12.5px; }
-      .season-row .s-miles{ font-size:clamp(22px,6vw,28px); font-weight:800; line-height:1.1; font-variant-numeric:tabular-nums; text-align:right; white-space:nowrap; }
+      .season-row .s-miles{ font-size:clamp(22px,6vw,28px); font-weight:800; line-height:1.1; font-variant-numeric:tabular-nums; text-align:right; white-space:nowrap; justify-self:end; }
       .season-row .s-miles small{ font-size:13px; font-weight:600; }
-      .season-row .s-total{ font-size:13px; opacity:.9; width:100%; text-align:right; }
+      .season-row .s-total{ font-size:13px; opacity:.9; grid-column:1 / -1; text-align:right; }
+      @media (max-width:480px){
+        .season-row .s-label{ font-size:14px; }
+        .season-row .s-miles{ font-size:20px; }
+      }
       .notice{
         border-radius:10px; padding:11px 13px; font-size:14px; margin-top:14px;
       }
