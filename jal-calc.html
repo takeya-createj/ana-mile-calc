@@ -716,9 +716,9 @@ var S = {
 };
 var DIST_REGIONS = ["all","東アジア","東南アジア","南アジア","オセアニア","ハワイ・グアム","北米","中南米","ヨーロッパ","中東","アフリカ"];
 function paxNum(v){ var n = parseInt(v,10); return (n>=1 && n<=5) ? n : 1; }
-function totalBarHtml(pax, baseTotal, maxTotal){
+function totalBarHtml(pax, baseTotal, maxTotal, suffix){
   if(pax<=1) return "";
-  var s = '<div class="total-bar">'+pax+'人分の合計：基本 '+fmt(baseTotal)+' マイル';
+  var s = '<div class="total-bar">'+pax+'人分の合計：基本 '+fmt(baseTotal)+' マイル'+(suffix||"");
   if(maxTotal) s += '（PLUS最大 '+fmt(maxTotal)+' マイル）';
   s += '<span class="sub2">上の表示は1人あたりです。小児も大人と同じマイル数です。</span></div>';
   return s;
@@ -923,10 +923,10 @@ function renderJal(){
     '<p class="result-head">日本 ⇄ '+d.name+'</p>'+
     '<p class="result-meta">'+tripLbl+'・'+d.area+'・'+CLASS_NAME[S.jalClass]+'<span class="tag">基本マイル</span></p>'+
     '<div class="miles-grid two">'+
-      '<div class="mile-box hl"><div class="kn">基本マイル（最安・1人）</div><div class="v">'+fmt(base*mult)+'</div><div class="u">マイル</div></div>'+
+      '<div class="mile-box hl"><div class="kn">基本マイル（最安・1人）</div><div class="v">'+fmt(base*mult)+'</div><div class="u">マイル〜</div></div>'+
       maxCell +
     '</div>'+
-    totalBarHtml(paxJ, base*mult*paxJ, plusMax ? plusMax*mult*paxJ : null)+
+    totalBarHtml(paxJ, base*mult*paxJ, plusMax ? plusMax*mult*paxJ : null, "〜")+
     fuelHtml(JAL_FUEL[d.id], mult, paxJ, false)+
     '<div class="note"><strong>エコノミー／プレミアムエコノミー／ビジネスは変動制</strong>です。基本マイルで取れる席が埋まると「特典航空券PLUS」となり、予測残席に応じて必要マイルが上乗せされます（表示レンジは目安です）。空きがあれば基本マイルで取れるのがJAL自社便の強みです。<br>'+
     '※マイルのほかに燃油特別付加運賃・税金などが別途かかります。ファーストクラスはPLUS対象外の固定マイルです（クラス選択で表示）。</div>';
