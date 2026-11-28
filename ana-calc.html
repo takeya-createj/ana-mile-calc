@@ -913,9 +913,6 @@
       if(_suppressSave) return;
       try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(S)); }catch(e){}
     }
-    function removeSavedState(){
-      try{ localStorage.removeItem(STORAGE_KEY); }catch(e){}
-    }
     function isDateStr(v){ return typeof v==="string" && (v==="" || /^\d{4}-\d{2}-\d{2}$/.test(v)); }
     function loadState(){
       var parsed = null;
@@ -1463,9 +1460,12 @@
       document.getElementById("domDateRet").addEventListener("change", function(){ S.domDateRet = this.value; saveState(); render(); });
 
       document.getElementById("clearBtn").addEventListener("click", function(){
-        removeSavedState();
+        var keepTab = S.tab;
+        var keepMode = S.mode;
         _suppressSave = true;
         Object.keys(DEFAULTS).forEach(function(k){ S[k] = DEFAULTS[k]; });
+        S.tab = keepTab;
+        S.mode = keepMode;
         setTab(S.tab);
         fromSel.value = S.domFrom; toSel.value = S.domTo;
         starSel.value = S.starAir; indivSel.value = S.indivAir;
@@ -1488,6 +1488,7 @@
         fillDestSelect();
         render();
         _suppressSave = false;
+        saveState();
       });
       render();
     })();

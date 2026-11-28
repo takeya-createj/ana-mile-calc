@@ -1404,9 +1404,10 @@ function render(){
   if(savedState) applySavedState(savedState);
 
   document.getElementById("clear-inputs").addEventListener("click", function(){
-    try{ localStorage.removeItem(LS_KEY); }catch(e){}
-    persistenceOn = false;
+    /* クリア後も現在のタブ（国内線／国際線）と国際線の特典モードは維持し、それ以外は初期値に戻す */
+    var keepMode = S.mode, keepType = S.intlType;
     for(var k in DEFAULT_S) S[k] = DEFAULT_S[k];
+    S.mode = keepMode; S.intlType = keepType;
     syncSegs();
     fromSel.value = "HND"; toSel.value = "ITM";
     fillJalDest();
@@ -1414,9 +1415,7 @@ function render(){
     oSel.value = "TYO";
     di.value = "7662"; syncDistChips();
     dSel.value = ""; fillDest();
-    render();
-    try{ localStorage.removeItem(LS_KEY); }catch(e){}
-    persistenceOn = true;
+    render(); /* render内のsaveStateにより、クリア後の状態（タブ・モード維持＋他は初期値）がlocalStorageへ上書き保存される */
   });
 
   render();
