@@ -305,6 +305,9 @@
 
           <!-- JAL自社便 -->
           <div id="jal-box">
+            <p class="lbl">エリアで絞り込む</p>
+            <div class="chips" id="jal-area-chips"></div>
+
             <p class="lbl">行き先（日本発着）</p>
             <select id="jal-dest" aria-label="行き先"></select>
 
@@ -357,7 +360,7 @@
             </div>
 
             <div id="dist-city-box">
-              <p class="lbl">地域で絞り込む</p>
+              <p class="lbl">エリアで絞り込む</p>
               <div class="chips" id="dist-region-chips"></div>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
                 <div>
@@ -635,6 +638,9 @@ var JAL_DESTS = [
   {id:"losangeles",name:"ロサンゼルス", area:"北米", y:27000, py:40000, c:55000, f:[110000,125000,140000], plusPY:230000},
   {id:"na_other",  name:"北米その他（シカゴ／ダラス／サンフランシスコ／シアトル／バンクーバー／サンディエゴ／ボストン）", area:"北米", y:27000, py:40000, c:55000, f:[110000,125000,140000]}
 ];
+/* JAL自社便のエリア一覧（行き先データの area から出現順に生成・先頭は「すべて」） */
+var JAL_AREAS = ["all"];
+JAL_DESTS.forEach(function(d){ if(JAL_AREAS.indexOf(d.area)<0) JAL_AREAS.push(d.area); });
 
 /* ---------- 燃油サーチャージ（JAL便・日本発片道1人・2026年11〜12月発券分 ゾーンS） ---------- */
 /* 2か月ごとに改定。提携便は運航会社の額が適用されるため目安 */
@@ -822,7 +828,7 @@ function dateBannerHtml(){
 var S = {
   mode:"dom",
   domMode:"airport", domZone:"C", domClass:"y", domTrip:"one", domPax:"1",
-  intlType:"jal", jalDest:"honolulu", jalClass:"y", jalTrip:"one", jalSeason:"all", jalPax:"1", jalDate:"",
+  intlType:"jal", jalDest:"honolulu", jalArea:"all", jalClass:"y", jalTrip:"one", jalSeason:"all", jalPax:"1", jalDate:"",
   distClass:"c", distPax:"1", distMode:"city", distTrip:"round", distRegion:"all"
 };
 
@@ -831,7 +837,7 @@ var LS_KEY = "jalMileCalcState.v1";
 var DEFAULT_S = {
   mode:"dom",
   domMode:"airport", domZone:"C", domClass:"y", domTrip:"one", domPax:"1",
-  intlType:"jal", jalDest:"honolulu", jalClass:"y", jalTrip:"one", jalSeason:"all", jalPax:"1", jalDate:"",
+  intlType:"jal", jalDest:"honolulu", jalArea:"all", jalClass:"y", jalTrip:"one", jalSeason:"all", jalPax:"1", jalDate:"",
   distClass:"c", distPax:"1", distMode:"city", distTrip:"round", distRegion:"all"
 };
 var persistenceOn = false;
@@ -1205,14 +1211,45 @@ function render(){
   });
 
   var destSel = document.getElementById("jal-dest");
-  var lastArea = "", curGroup = null;
-  JAL_DESTS.forEach(function(d){
-    if(d.area!==lastArea){
-      curGroup = document.createElement("optgroup"); curGroup.label = d.area; destSel.appendChild(curGroup); lastArea = d.area;
+  function fillJalDest(){
+    var prev = S.jalDest;
+    destSel.innerHTML = "";
+    var visible = [];
+    if(S.jalArea==="all"){
+      var lastArea = "", curGroup = null;
+      JAL_DESTS.forEach(function(d){
+        if(d.area!==lastArea){
+          curGroup = document.createElement("optgroup"); curGroup.label = d.area; destSel.appendChild(curGroup); lastArea = d.area;
+        }
+        curGroup.appendChild(new Option(d.name, d.id));
+        visible.push(d.id);
+      });
+    } else {
+      JAL_DESTS.forEach(function(d){
+        if(d.area!==S.jalArea) return;
+        destSel.add(new Option(d.name, d.id));
+        visible.push(d.id);
+      });
     }
-    curGroup.appendChild(new Option(d.name, d.id));
+    if(visible.indexOf(prev)<0 && visible.length) S.jalDest = visible[0];
+    destSel.value = S.jalDest;
+  }
+  var jalAreaChips = document.getElementById("jal-area-chips");
+  JAL_AREAS.forEach(function(a){
+    var b = document.createElement("button");
+    b.type = "button"; b.textContent = a==="all" ? "すべて" : a;
+    b.setAttribute("data-v", a);
+    if(a===S.jalArea) b.classList.add("active");
+    b.addEventListener("click", function(){
+      S.jalArea = a;
+      var bs = jalAreaChips.querySelectorAll("button");
+      for(var i=0;i<bs.length;i++) bs[i].classList.remove("active");
+      b.classList.add("active");
+      fillJalDest(); render();
+    });
+    jalAreaChips.appendChild(b);
   });
-  destSel.value = S.jalDest;
+  fillJalDest();
   destSel.addEventListener("change", function(){ S.jalDest = destSel.value; render(); });
 
   document.getElementById("tab-dom").addEventListener("click", function(){ S.mode="dom"; render(); });
@@ -1314,6 +1351,7 @@ function render(){
     document.getElementById("dom-airport-box").classList.toggle("hidden", S.domMode!=="airport");
     document.getElementById("dom-zone-box").classList.toggle("hidden", S.domMode!=="zone");
     syncChips("dom-zone-chips", S.domZone);
+    syncChips("jal-area-chips", S.jalArea);
     syncChips("dist-region-chips", S.distRegion);
   }
   function applySavedState(sv){
@@ -1332,6 +1370,12 @@ function render(){
     v = pick("domPax", ["1","2","3","4","5"]); if(v) S.domPax = v;
     v = pick("intlType", ["jal","partner","ow"]); if(v) S.intlType = v;
     v = pick("jalDest", JAL_DESTS.map(function(d){ return d.id; })); if(v) S.jalDest = v;
+    v = pick("jalArea", JAL_AREAS); if(v) S.jalArea = v;
+    if(S.jalArea!=="all"){
+      var jdObj = null;
+      for(var ji=0;ji<JAL_DESTS.length;ji++) if(JAL_DESTS[ji].id===S.jalDest) jdObj = JAL_DESTS[ji];
+      if(jdObj && jdObj.area!==S.jalArea) S.jalArea = jdObj.area;
+    }
     v = pick("jalClass", ["y","py","c","f"]); if(v) S.jalClass = v;
     v = pick("jalTrip", ["one","round"]); if(v) S.jalTrip = v;
     v = pick("jalSeason", ["all","L","R","H"]); if(v) S.jalSeason = v;
@@ -1346,7 +1390,7 @@ function render(){
     var apCodes = DOM_AIRPORTS.map(function(a){ return a[0]; });
     v = pick("domFrom", apCodes); if(v) fromSel.value = v;
     v = pick("domTo", apCodes); if(v) toSel.value = v;
-    destSel.value = S.jalDest;
+    fillJalDest();
     var jdEl = document.getElementById("jal-date"); if(jdEl) jdEl.value = S.jalDate;
     v = pick("distOrigin", Object.keys(CITY_ROUTES)); if(v) oSel.value = v;
     if(typeof sv.distInput==="string" && sv.distInput!=="" && !isNaN(parseInt(sv.distInput,10))){ di.value = sv.distInput; syncDistChips(); }
@@ -1365,7 +1409,7 @@ function render(){
     for(var k in DEFAULT_S) S[k] = DEFAULT_S[k];
     syncSegs();
     fromSel.value = "HND"; toSel.value = "ITM";
-    destSel.value = S.jalDest;
+    fillJalDest();
     var jdEl2 = document.getElementById("jal-date"); if(jdEl2) jdEl2.value = "";
     oSel.value = "TYO";
     di.value = "7662"; syncDistChips();
