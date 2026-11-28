@@ -64,6 +64,13 @@
       .seg-wrap{ max-width:430px; margin:0 auto 16px; background:rgba(255,255,255,.55); border-radius:999px; padding:5px; backdrop-filter:blur(6px); }
       @media (prefers-color-scheme: dark){ .seg-wrap{ background:rgba(10,20,32,.55); } }
       .seg-wrap .seg{ background:transparent; padding:0; }
+      .clear-bar{ text-align:center; margin:0 0 16px; }
+      .clear-btn{
+        border:1px solid rgba(255,255,255,.85); background:rgba(255,255,255,.55); backdrop-filter:blur(6px);
+        color:var(--jal-dark); font:inherit; font-size:13px; font-weight:700;
+        border-radius:999px; padding:8px 18px; cursor:pointer; min-height:40px;
+      }
+      @media (prefers-color-scheme: dark){ .clear-btn{ background:rgba(10,20,32,.55); color:#ff8fa3; } }
       .lbl{ font-size:12.5px; font-weight:700; color:var(--ink-soft); margin:18px 0 8px; }
       .lbl:first-child{ margin-top:0; }
       .row2{ display:grid; grid-template-columns:1fr auto 1fr; gap:8px; align-items:end; }
@@ -189,6 +196,10 @@
           <button type="button" id="tab-dom" class="active">国内線</button>
           <button type="button" id="tab-intl">国際線</button>
         </div>
+      </div>
+
+      <div class="clear-bar">
+        <button type="button" class="clear-btn" id="clear-inputs">入力をクリア</button>
       </div>
 
       <!-- ============ 国内線 ============ -->
@@ -765,6 +776,38 @@ var S = {
   intlType:"jal", jalDest:"honolulu", jalClass:"y", jalTrip:"one", jalSeason:"all", jalPax:"1", jalDate:"",
   distClass:"c", distPax:"1", distMode:"city", distTrip:"round", distRegion:"all"
 };
+
+/* ---------- 入力の保持（localStorage・JAL専用キー） ---------- */
+var LS_KEY = "jalMileCalcState.v1";
+var DEFAULT_S = {
+  mode:"dom",
+  domMode:"airport", domZone:"C", domClass:"y", domTrip:"one", domPax:"1",
+  intlType:"jal", jalDest:"honolulu", jalClass:"y", jalTrip:"one", jalSeason:"all", jalPax:"1", jalDate:"",
+  distClass:"c", distPax:"1", distMode:"city", distTrip:"round", distRegion:"all"
+};
+var persistenceOn = false;
+function saveState(){
+  if(!persistenceOn) return;
+  try{
+    var st = {};
+    for(var k in DEFAULT_S) st[k] = S[k];
+    st.domFrom = document.getElementById("dom-from").value;
+    st.domTo = document.getElementById("dom-to").value;
+    st.distOrigin = document.getElementById("dist-origin").value;
+    st.distDest = document.getElementById("dist-dest").value;
+    st.distInput = document.getElementById("dist-input").value;
+    localStorage.setItem(LS_KEY, JSON.stringify(st));
+  }catch(e){}
+}
+function loadSavedState(){
+  try{
+    var raw = localStorage.getItem(LS_KEY);
+    if(!raw) return null;
+    var obj = JSON.parse(raw);
+    if(!obj || typeof obj!=="object" || Object.prototype.toString.call(obj)!=="[object Object]") return null;
+    return obj;
+  }catch(e){ return null; }
+}
 var DIST_REGIONS = ["all","東アジア","東南アジア","南アジア","オセアニア","ハワイ・グアム","北米","中南米","ヨーロッパ","中東","アフリカ"];
 function paxNum(v){ var n = parseInt(v,10); return (n>=1 && n<=5) ? n : 1; }
 function totalBarHtml(pax, baseTotal, maxTotal, suffix){
@@ -1072,7 +1115,7 @@ function render(){
   document.getElementById("panel-intl").classList.toggle("hidden", S.mode!=="intl");
   document.getElementById("tab-dom").classList.toggle("active", S.mode==="dom");
   document.getElementById("tab-intl").classList.toggle("active", S.mode==="intl");
-  if(S.mode==="dom"){ renderDom(); return; }
+  if(S.mode==="dom"){ renderDom(); saveState(); return; }
   document.getElementById("jal-box").classList.toggle("hidden", S.intlType!=="jal");
   document.getElementById("dist-box").classList.toggle("hidden", S.intlType==="jal");
   document.getElementById("chart-details").classList.toggle("hidden", S.intlType==="jal");
@@ -1082,6 +1125,7 @@ function render(){
   document.getElementById("dist-city-box").classList.toggle("hidden", S.distMode!=="city");
   document.getElementById("dist-manual-box").classList.toggle("hidden", S.distMode!=="manual");
   if(S.intlType==="jal") renderJal(); else renderDist();
+  saveState();
 }
 
 /* ---------- 初期化 ---------- */
@@ -1201,7 +1245,85 @@ function render(){
     b.classList.add("active"); render();
   });
 
+  /* ---------- 保存データの復元・クリア ---------- */
+  function syncChips(id, val){
+    var bs = document.getElementById(id).querySelectorAll("button");
+    for(var i=0;i<bs.length;i++) bs[i].classList.toggle("active", bs[i].getAttribute("data-v")===val);
+  }
+  function syncDistChips(){
+    var bs = document.querySelectorAll("#dist-chips button");
+    for(var i=0;i<bs.length;i++) bs[i].classList.toggle("active", bs[i].getAttribute("data-v")===di.value);
+  }
+  function syncSegs(){
+    segSet("dom-mode", S.domMode); segSet("dom-class", S.domClass); segSet("dom-trip", S.domTrip); segSet("dom-pax", S.domPax);
+    segSet("intl-type", S.intlType); segSet("jal-class", S.jalClass); segSet("jal-trip", S.jalTrip); segSet("jal-season", S.jalSeason); segSet("jal-pax", S.jalPax);
+    segSet("dist-class", S.distClass); segSet("dist-pax", S.distPax); segSet("dist-mode", S.distMode); segSet("dist-trip", S.distTrip);
+    document.getElementById("dom-airport-box").classList.toggle("hidden", S.domMode!=="airport");
+    document.getElementById("dom-zone-box").classList.toggle("hidden", S.domMode!=="zone");
+    syncChips("dom-zone-chips", S.domZone);
+    syncChips("dist-region-chips", S.distRegion);
+  }
+  function applySavedState(sv){
+    function pick(key, allowed){
+      var v = sv[key];
+      if(typeof v!=="string") return null;
+      if(allowed && allowed.indexOf(v)<0) return null;
+      return v;
+    }
+    var v;
+    v = pick("mode", ["dom","intl"]); if(v) S.mode = v;
+    v = pick("domMode", ["airport","zone"]); if(v) S.domMode = v;
+    v = pick("domZone", Object.keys(DOM_ZONES)); if(v) S.domZone = v;
+    v = pick("domClass", ["y","j","f"]); if(v) S.domClass = v;
+    v = pick("domTrip", ["one","round"]); if(v) S.domTrip = v;
+    v = pick("domPax", ["1","2","3","4","5"]); if(v) S.domPax = v;
+    v = pick("intlType", ["jal","partner","ow"]); if(v) S.intlType = v;
+    v = pick("jalDest", JAL_DESTS.map(function(d){ return d.id; })); if(v) S.jalDest = v;
+    v = pick("jalClass", ["y","py","c","f"]); if(v) S.jalClass = v;
+    v = pick("jalTrip", ["one","round"]); if(v) S.jalTrip = v;
+    v = pick("jalSeason", ["all","L","R","H"]); if(v) S.jalSeason = v;
+    v = pick("jalPax", ["1","2","3","4","5"]); if(v) S.jalPax = v;
+    if(typeof sv.jalDate==="string" && (sv.jalDate==="" || /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$/.test(sv.jalDate))) S.jalDate = sv.jalDate;
+    v = pick("distClass", ["y","py","c","f"]); if(v) S.distClass = v;
+    v = pick("distPax", ["1","2","3","4","5"]); if(v) S.distPax = v;
+    v = pick("distMode", ["city","manual"]); if(v) S.distMode = v;
+    v = pick("distTrip", ["one","round"]); if(v) S.distTrip = v;
+    v = pick("distRegion", DIST_REGIONS); if(v) S.distRegion = v;
+    syncSegs();
+    var apCodes = DOM_AIRPORTS.map(function(a){ return a[0]; });
+    v = pick("domFrom", apCodes); if(v) fromSel.value = v;
+    v = pick("domTo", apCodes); if(v) toSel.value = v;
+    destSel.value = S.jalDest;
+    var jdEl = document.getElementById("jal-date"); if(jdEl) jdEl.value = S.jalDate;
+    v = pick("distOrigin", Object.keys(CITY_ROUTES)); if(v) oSel.value = v;
+    if(typeof sv.distInput==="string" && sv.distInput!=="" && !isNaN(parseInt(sv.distInput,10))){ di.value = sv.distInput; syncDistChips(); }
+    dSel.value = ""; fillDest();
+    v = pick("distDest", null);
+    if(v){
+      for(var i=0;i<dSel.options.length;i++){ if(dSel.options[i].value===v){ dSel.value = v; break; } }
+    }
+  }
+  var savedState = loadSavedState();
+  if(savedState) applySavedState(savedState);
+
+  document.getElementById("clear-inputs").addEventListener("click", function(){
+    try{ localStorage.removeItem(LS_KEY); }catch(e){}
+    persistenceOn = false;
+    for(var k in DEFAULT_S) S[k] = DEFAULT_S[k];
+    syncSegs();
+    fromSel.value = "HND"; toSel.value = "ITM";
+    destSel.value = S.jalDest;
+    var jdEl2 = document.getElementById("jal-date"); if(jdEl2) jdEl2.value = "";
+    oSel.value = "TYO";
+    di.value = "7662"; syncDistChips();
+    dSel.value = ""; fillDest();
+    render();
+    try{ localStorage.removeItem(LS_KEY); }catch(e){}
+    persistenceOn = true;
+  });
+
   render();
+  persistenceOn = true;
 })();
 </script>
     <script>
