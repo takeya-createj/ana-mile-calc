@@ -58,8 +58,6 @@
       .wrap{ position:relative; max-width:920px; margin:0 auto; padding:30px 14px 56px; }
       header{ margin:6px 0 20px; text-align:center; }
       h1{ font-size:clamp(22px,5.4vw,32px); line-height:1.3; margin:0 0 8px; color:#fff; letter-spacing:.01em; text-shadow:0 2px 14px rgba(10,30,50,.55); }
-      .lead{ color:#fff; margin:0; font-size:15px; font-weight:600; text-shadow:0 1px 8px rgba(10,30,50,.6); }
-      .lead b{ color:#fff; }
       .tabs{
         display:flex; gap:6px; background:rgba(255,255,255,.55); border:1px solid rgba(255,255,255,.35);
         border-radius:999px; padding:6px; margin:0 0 18px;
@@ -243,11 +241,11 @@
       .seasonbox table{ width:100%; border-collapse:collapse; font-variant-numeric:tabular-nums; }
       .seasonbox td{ padding:2px 0; vertical-align:top; }
       .seasonbox td:first-child{ font-weight:700; white-space:nowrap; padding-right:10px; }
-      .clear-row{ display:flex; justify-content:flex-end; margin:0 0 14px; }
+      .clear-row{ display:flex; justify-content:center; margin:0 0 14px; }
       .clear-btn{
-        border:1px solid var(--line); background:var(--card); color:var(--ink2);
-        border-radius:9px; padding:6px 14px; cursor:pointer; font-size:14px; font-weight:700;
-        min-height:2.5rem; box-shadow:var(--shadow); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+        border:1.5px solid var(--sky); background:var(--card-solid); color:var(--sky);
+        border-radius:999px; padding:8px 18px; cursor:pointer; font-size:15px; font-weight:800;
+        min-height:2.5rem; box-shadow:var(--shadow);
       }
       .clear-btn:hover{ border-color:var(--sky); color:var(--sky); }
       .clear-btn:focus-visible{ outline:2px solid var(--sky); outline-offset:2px; }
@@ -263,7 +261,6 @@
     <div class="wrap">
       <header>
         <h1>ANA特典航空券 必要マイル計算</h1>
-        <p class="lead">ANAマイルで特典航空券に交換するときの必要マイル数を、ANA公式チャートで計算します。<b>国内線</b>と<b>国際線（ANA便／スターアライアンス特典／個別提携社特典）</b>に対応。提携特典は2つの制度に分かれていて、航空会社ごとのルールや、日本発着の直行便がある行き先も確認できます。燃油サーチャージの水準も航空会社ごとに確認できます。</p>
       </header>
 
       <div class="tabs" role="tablist" aria-label="国内線と国際線の切り替え">
