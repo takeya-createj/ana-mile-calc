@@ -114,33 +114,65 @@
       .date-note{ font-size:13px; color:var(--ink2); margin:6px 0 0; }
       .grid2{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
       @media (max-width:560px){ .grid2{ grid-template-columns:1fr; } }
-      .result{
-        background:var(--result-bg); color:var(--result-ink); border-radius:12px;
+      .result-panel{
+        background:var(--card-solid); border:1.5px solid var(--line); border-radius:16px;
         padding:16px; margin-top:16px;
       }
-      .result .route{ font-size:14px; opacity:.85; margin:0 0 2px; }
-      .result .big{ font-size:clamp(30px,8vw,44px); font-weight:800; line-height:1.15; margin:0; font-variant-numeric:tabular-nums; }
-      .result .big small{ font-size:16px; font-weight:600; }
-      .result .per{ font-size:14px; margin:4px 0 0; opacity:.9; }
-      .totalbar{
-        margin-top:12px; background:rgba(255,255,255,.13); border-radius:9px; padding:9px 12px;
-        font-size:15px; display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap;
+      .result-head{ font-size:16.5px; font-weight:800; margin:0 0 2px; line-height:1.4; }
+      .result-meta{ font-size:13px; font-weight:700; color:var(--sky); margin:0 0 12px; line-height:1.55; }
+      .result-meta .tag{
+        display:inline-block; background:var(--ok-bg); color:var(--ok); border-radius:999px;
+        padding:1px 9px; font-size:11.5px; font-weight:800; margin-left:6px; vertical-align:1px; white-space:nowrap;
       }
-      .totalbar b{ font-size:19px; font-variant-numeric:tabular-nums; }
-      .season-rows{ margin-top:12px; display:grid; gap:8px; }
-      .season-row{
-        display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; column-gap:12px; row-gap:2px;
-        background:rgba(255,255,255,.13); border-radius:9px; padding:10px 12px;
+      .miles-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:9px; }
+      .miles-grid.single{ grid-template-columns:1fr; }
+      .miles-grid.two{ grid-template-columns:repeat(2,1fr); }
+      .mile-box{
+        background:var(--card-solid); border:1.5px solid var(--line); border-radius:14px;
+        padding:16px 8px 12px; text-align:center;
       }
-      .season-row .s-label{ font-weight:700; font-size:15px; line-height:1.35; }
-      .season-row .s-label small{ display:block; font-weight:500; opacity:.85; font-size:12.5px; }
-      .season-row .s-miles{ font-size:clamp(22px,6vw,28px); font-weight:800; line-height:1.1; font-variant-numeric:tabular-nums; text-align:right; white-space:nowrap; justify-self:end; }
-      .season-row .s-miles small{ font-size:13px; font-weight:600; }
-      .season-row .s-total{ font-size:13px; opacity:.9; grid-column:1 / -1; text-align:right; }
-      @media (max-width:480px){
-        .season-row .s-label{ font-size:14px; }
-        .season-row .s-miles{ font-size:20px; }
+      .mile-box.hl{ border-color:var(--sky); box-shadow:0 4px 16px rgba(0,114,188,.18); }
+      .mile-box .k{ font-size:15px; font-weight:800; line-height:1.2; }
+      .mile-box .k.kL{ color:var(--ok); }
+      .mile-box .k.kR{ color:var(--warn); }
+      .mile-box .k.kH{ color:var(--bad); }
+      .mile-box .kn{ font-size:11px; font-weight:700; color:var(--ink2); line-height:1.3; margin-top:2px; }
+      .mile-box .v{ font-size:clamp(21px,5vw,27px); font-weight:800; line-height:1.2; margin-top:6px; font-variant-numeric:tabular-nums; white-space:nowrap; }
+      .mile-box .u{ font-size:11px; font-weight:700; color:var(--ink2); margin-top:2px; }
+      .total-bar{
+        margin-top:12px; border:1.5px solid var(--sky); background:var(--sky-soft); border-radius:14px;
+        padding:11px 12px; font-size:15px; font-weight:700; text-align:center; font-variant-numeric:tabular-nums;
       }
+      .total-bar b{ font-size:18px; font-weight:800; }
+      .total-bar .tb-sub{ display:block; font-size:13px; font-weight:700; margin-top:3px; }
+      @media (max-width:560px){
+        .miles-grid{ gap:7px; }
+        .mile-box{ padding:13px 4px 10px; }
+        .mile-box .v{ font-size:19px; }
+        .result-head{ font-size:15.5px; }
+      }
+      html[data-theme="dark"] .mile-box{ background:#16202f; border-color:#2b3a52; color:#e8eef7; }
+      html[data-theme="dark"] .mile-box.hl{ border-color:#4da3e0; box-shadow:0 4px 16px rgba(77,163,224,.25); }
+      html[data-theme="dark"] .mile-box .k.kL{ color:#5fc98e; }
+      html[data-theme="dark"] .mile-box .k.kR{ color:#eda94f; }
+      html[data-theme="dark"] .mile-box .k.kH{ color:#ef8a84; }
+      html[data-theme="dark"] .mile-box .kn, html[data-theme="dark"] .mile-box .u{ color:#a7b6cc; }
+      html[data-theme="dark"] .result-meta{ color:#4da3e0; }
+      html[data-theme="dark"] .result-meta .tag{ background:#143527; color:#5fc98e; }
+      html[data-theme="dark"] .total-bar{ border-color:#4da3e0; background:#1b2f47; color:#e8eef7; }
+      .rule-box{
+        border:1.5px solid var(--sky); background:var(--sky-soft); border-radius:14px;
+        padding:11px 13px; font-size:14px;
+      }
+      .rule-box p{ margin:0; }
+      .airline-card{
+        border:1.5px solid var(--line); background:var(--card-solid); border-radius:14px;
+        padding:12px 14px; font-size:14px; margin-top:10px;
+      }
+      .airline-card h3{ font-size:15px; margin:0 0 6px; }
+      .airline-card p{ margin:0 0 6px; color:var(--ink2); }
+      .airline-card p b{ color:var(--ink); }
+      .airline-card p:last-child{ margin-bottom:0; }
       .notice{
         border-radius:10px; padding:11px 13px; font-size:14px; margin-top:14px;
       }
@@ -162,9 +194,13 @@
         margin-top:14px; border:1px solid var(--line); border-radius:10px; padding:11px 13px; font-size:14px;
       }
       .compare h3{ font-size:14px; margin:0 0 6px; color:var(--ink2); }
-      .compare table{ width:100%; border-collapse:collapse; font-variant-numeric:tabular-nums; }
-      .compare td{ padding:3px 0; }
-      .compare td:last-child{ text-align:right; font-weight:700; white-space:nowrap; }
+      .cmp-row{
+        display:flex; justify-content:space-between; align-items:baseline; gap:12px;
+        padding:7px 0; border-bottom:1px solid var(--line); font-variant-numeric:tabular-nums;
+      }
+      .cmp-row:last-of-type{ border-bottom:none; }
+      .cmp-row .c-lab{ color:var(--ink2); }
+      .cmp-row .c-val{ font-weight:800; white-space:nowrap; text-align:right; }
       details.ref{ background:var(--card); border:1px solid var(--line); border-radius:20px; padding:4px 16px; margin:0 0 18px; box-shadow:var(--shadow); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); }
       details.ref summary{ cursor:pointer; font-weight:700; padding:12px 0; min-height:2.75rem; display:flex; align-items:center; }
       details.ref .body{ padding:0 0 16px; font-size:14px; }
@@ -193,7 +229,7 @@
     <div class="wrap">
       <header>
         <h1>ANA特典航空券 必要マイル計算</h1>
-        <p class="lead">ANAマイルで特典航空券に交換するときの必要マイル数を、ANA公式チャートで計算します。<b>国内線</b>と<b>国際線（ANA便／提携航空会社）</b>に対応。提携社はスターアライアンス加盟社が中心で、燃油サーチャージの水準も航空会社ごとに確認できます。</p>
+        <p class="lead">ANAマイルで特典航空券に交換するときの必要マイル数を、ANA公式チャートで計算します。<b>国内線</b>と<b>国際線（ANA便／スターアライアンス特典／個別提携社特典）</b>に対応。提携特典は2つの制度に分かれていて、航空会社ごとのルールや、日本発着の直行便がある行き先も確認できます。燃油サーチャージの水準も航空会社ごとに確認できます。</p>
       </header>
 
       <div class="tabs" role="tablist" aria-label="国内線と国際線の切り替え">
@@ -288,14 +324,36 @@
       <!-- ============ 国際線 ============ -->
       <section class="card" id="intlSec" role="tabpanel" aria-labelledby="tabIntl" hidden>
         <h2>国際線</h2>
-        <p class="sub">日本発着が対象です。ANA便はゾーン×シーズン×クラス、提携社はゾーン×クラス（<b>シーズン区分なし</b>）で決まります。どちらも2025年6月24日から片道でも交換できます。</p>
+        <p class="sub">日本発着が対象です。ANA便はゾーン×シーズン×クラス、提携特典（スターアライアンス特典／個別提携社特典）はゾーン×クラス（<b>シーズン区分なし</b>）で決まります。2つの提携制度では、航空会社の組み合わせ可否などのルールが異なります。どちらも2025年6月24日から片道でも交換できます。</p>
 
         <div class="row">
           <p class="lab">利用する航空会社</p>
           <div class="seg" id="modeSeg">
             <button type="button" data-v="ana" class="active">ANA便</button>
-            <button type="button" data-v="partner">提携航空会社</button>
+            <button type="button" data-v="star">スターアライアンス特典</button>
+            <button type="button" data-v="indiv">個別提携社特典</button>
           </div>
+        </div>
+
+        <div class="row" id="starRuleRow" hidden>
+          <div class="rule-box"><p>スターアライアンス加盟航空会社とコネクティングパートナー（吉祥航空）は、複数の航空会社を自由に組み合わせて旅程を組めます。世界一周旅程はスターアライアンス特典のみが対象です。</p></div>
+        </div>
+
+        <div class="row" id="starFilterRow" hidden>
+          <p class="lab">航空会社から絞り込む（任意）</p>
+          <select id="starAirSel" aria-label="スターアライアンス特典・航空会社で絞り込む"></select>
+          <p class="date-note" id="starFilterNote" hidden>スターアライアンス特典は航空会社を組み合わせられるため、直行便のない目的地にも乗り継ぎで行けます。必要マイルは最終目的地のゾーンで決まります。</p>
+        </div>
+
+        <div class="row" id="indivRuleRow" hidden>
+          <div class="rule-box"><p>個別提携社特典は、その航空会社1社の運航便だけで全旅程を組む必要があります。他の航空会社との組み合わせはできません。</p></div>
+        </div>
+
+        <div class="row" id="indivRow" hidden>
+          <p class="lab">航空会社を選ぶ</p>
+          <select id="indivAirSel" aria-label="個別提携社特典・航空会社を選ぶ"></select>
+          <div id="indivCard"></div>
+          <p class="date-note" id="indivDirectNote" hidden>直行都市以外へは、その会社の乗り継ぎ便で全区間を組める場合があります。必要マイルは最終目的地のゾーンで決まります。</p>
         </div>
 
         <div class="row">
@@ -355,7 +413,7 @@
         </div>
 
         <div class="row" id="ptypeRow" hidden>
-          <p class="lab">旅程タイプ（提携社）</p>
+          <p class="lab">旅程タイプ（提携特典）</p>
           <div class="seg" id="ptypeSeg">
             <button type="button" data-v="1A" class="active">1-A（国際線の往復2区間のみ／国内乗継OK）</button>
             <button type="button" data-v="1B">1-B（それ以外の旅程）</button>
@@ -419,6 +477,24 @@
             <li><b>ウラジオストク／モスクワ</b>：チャート上のゾーンには含まれますが、現在は運航休止中のため実質利用できません。</li>
             <li>このほか、目的地として選べても、提携社の就航状況や特典枠の空席によっては予約できない場合があります。</li>
           </ul>
+
+          <h3>スターアライアンス特典と個別提携社特典の違い</h3>
+          <table class="plain">
+            <tr><th>項目</th><th>スターアライアンス特典</th><th>個別提携社特典</th></tr>
+            <tr><td>対象</td><td>スターアライアンス加盟航空会社＋コネクティングパートナー（吉祥航空）</td><td>対象9社（下記の一覧）</td></tr>
+            <tr><td>航空会社の組み合わせ</td><td>自由に組み合わせ可</td><td>その1社の運航便のみ</td></tr>
+            <tr><td>必要マイルの決まり方</td><td>ゾーン制・シーズン区分なし</td><td>ゾーン制・シーズン区分なし</td></tr>
+            <tr><td>旅程タイプ1-A／1-B</td><td>適用</td><td>適用</td></tr>
+            <tr><td>利用できるクラス</td><td>エコノミー／ビジネス／ファーストのみ（プレミアムエコノミーは不可）</td><td>エコノミー／ビジネス／ファーストのみ（プレミアムエコノミーは不可）</td></tr>
+            <tr><td>世界一周旅程</td><td>対象（スターアライアンス特典のみ）</td><td>対象外</td></tr>
+            <tr><td>燃油サーチャージ</td><td>運航航空会社の規定による（会社により無料〜高額）</td><td>運航航空会社の規定による（会社により無料〜高額）</td></tr>
+          </table>
+
+          <h3>対象航空会社の一覧</h3>
+          <p><b>スターアライアンス加盟航空会社（26社）</b>：ANA、エーゲ航空、エア・カナダ、エア・インディア、中国国際航空、ニュージーランド航空、アシアナ航空、オーストリア航空、アビアンカ航空、ブリュッセル航空、コパ航空、クロアチア航空、エジプト航空、エチオピア航空、エバー航空、ITAエアウェイズ、LOTポーランド航空、ルフトハンザ ドイツ航空、深セン航空、シンガポール航空、南アフリカ航空、スイス インターナショナル エアラインズ、TAPポルトガル航空、タイ国際航空、ターキッシュ エアラインズ、ユナイテッド航空</p>
+          <p><b>コネクティングパートナー</b>：吉祥航空</p>
+          <p><b>個別提携社（9社）</b>：エアドロミティ、マカオ航空、エティハド航空、ユーロウィングス、オリンピック航空、フィリピン航空、ヴァージン・アトランティック航空、ベトナム航空、ヴァージン・オーストラリア</p>
+          <p>出典：<a href="https://www.ana.co.jp/ja/jp/guide/amc/award/tk/usage/" target="_blank" rel="noopener">提携航空会社特典航空券 ご利用条件（ANA公式）</a></p>
 
           <h3>計算の前提</h3>
           <ul>
@@ -495,7 +571,42 @@
     // 提携社の燃油水準（発券実例ベース）
     var FUEL_NONE = ["シンガポール航空","ニュージーランド航空","ベトナム航空","ユナイテッド航空","エア・カナダ","エバー航空","ターキッシュ エアラインズ","アシアナ航空","タイ国際航空","中国国際航空","エチオピア航空","アビアンカ航空","コパ航空"];
     var FUEL_HIGH = ["ルフトハンザ ドイツ航空","スイス インターナショナル エアラインズ","オーストリア航空","ブリュッセル航空"];
-    var FUEL_UNK  = ["LOTポーランド航空","TAPポルトガル航空","エジプト航空","エア・インディア","南アフリカ航空","クロアチア航空","深セン航空","ガルーダ・インドネシア航空","エティハド航空","ITAエアウェイズ","ヴァージン・オーストラリア"];
+    var FUEL_UNK  = ["LOTポーランド航空","TAPポルトガル航空","エジプト航空","エア・インディア","南アフリカ航空","クロアチア航空","深セン航空","エティハド航空","ITAエアウェイズ","ヴァージン・オーストラリア"];
+
+    // スターアライアンス特典：日本発着の直行便がある航空会社と直行都市（目的地リストの表記）
+    var STAR_AIRLINES = ["ユナイテッド航空","エア・カナダ","エア・インディア","中国国際航空","ニュージーランド航空","アシアナ航空","オーストリア航空","エバー航空","ITAエアウェイズ","LOTポーランド航空","ルフトハンザ ドイツ航空","深セン航空","シンガポール航空","スイス インターナショナル エアラインズ","タイ国際航空","ターキッシュ エアラインズ","エチオピア航空"];
+    var STAR_DIRECT = {
+      "ユナイテッド航空": ["ロサンゼルス","サンフランシスコ","シカゴ","ヒューストン","ワシントンD.C.","ニューヨーク","デンバー","ホノルル","グアム","サイパン"],
+      "エア・カナダ": ["バンクーバー","トロント","モントリオール","カルガリー"],
+      "エア・インディア": ["デリー","ムンバイ"],
+      "中国国際航空": ["北京","上海","成都","杭州","大連","深セン"],
+      "ニュージーランド航空": ["オークランド"],
+      "アシアナ航空": ["ソウル（仁川・金浦）"],
+      "オーストリア航空": ["ウィーン"],
+      "エバー航空": ["台北"],
+      "ITAエアウェイズ": ["ローマ"],
+      "LOTポーランド航空": ["ワルシャワ"],
+      "ルフトハンザ ドイツ航空": ["フランクフルト","ミュンヘン"],
+      "深セン航空": ["深セン"],
+      "シンガポール航空": ["シンガポール"],
+      "スイス インターナショナル エアラインズ": ["チューリッヒ"],
+      "タイ国際航空": ["バンコク"],
+      "ターキッシュ エアラインズ": ["イスタンブール"],
+      "エチオピア航空": ["アディスアベバ"]
+    };
+    // 個別提携社特典：対象9社と会社固有情報
+    var INDIV_AIRLINES = ["ベトナム航空","エティハド航空","フィリピン航空","マカオ航空","ヴァージン・オーストラリア","ヴァージン・アトランティック航空","エアドロミティ","ユーロウィングス","オリンピック航空"];
+    var INDIV_INFO = {
+      "ベトナム航空": { calc:true, direct:["ハノイ","ホーチミン"], lines:["日本からの直行便は<b>ハノイ、ホーチミン</b>です。","燃油サーチャージは<b>かからない水準</b>です（発券実例ベースの目安です）。"] },
+      "エティハド航空": { calc:true, direct:["アブダビ"], lines:["日本からの直行便は<b>アブダビ</b>です。"] },
+      "フィリピン航空": { calc:true, direct:["マニラ"], lines:["日本からの直行便は<b>マニラ</b>です。","公式の注意：<b>2023年11月6日より一部区間の販売を一時停止しています</b>。"] },
+      "マカオ航空": { calc:true, direct:["マカオ"], lines:["日本からの直行便は<b>マカオ</b>です。","公式の注意：<b>9000番台の便名は特典航空券では利用できません</b>。"] },
+      "ヴァージン・オーストラリア": { calc:false, direct:[], lines:["日本発着の直行便は<b>現在ありません</b>（羽田〜ケアンズ線は2025年2月に運休）。","1社のみで日本発着の旅程を組めないため、このツールでは<b>目的地の計算対象外</b>です。"] },
+      "ヴァージン・アトランティック航空": { calc:false, direct:[], lines:["日本発着の直行便は<b>ありません</b>。","1社のみで日本発着の旅程を組めないため、このツールでは<b>目的地の計算対象外</b>です。"] },
+      "エアドロミティ": { calc:false, direct:[], lines:["日本発着の直行便は<b>ありません</b>。","1社のみで日本発着の旅程を組めないため、このツールでは<b>目的地の計算対象外</b>です。"] },
+      "ユーロウィングス": { calc:false, direct:[], lines:["日本発着の直行便は<b>ありません</b>。","1社のみで日本発着の旅程を組めないため、このツールでは<b>目的地の計算対象外</b>です。"] },
+      "オリンピック航空": { calc:false, direct:[], lines:["日本発着の直行便は<b>ありません</b>。","1社のみで日本発着の旅程を組めないため、このツールでは<b>目的地の計算対象外</b>です。","なお公式では「<b>特典航空券はエーゲ航空便名（A3 7000-7999）での予約になる</b>」旨が案内されています。"] }
+    };
 
     var REGIONS = { asia:"アジア", hawaii:"ハワイ", namerica:"北米", europe:"ヨーロッパ", oceania:"オセアニア", latin:"中南米", middleeast:"中東", africa:"アフリカ" };
     // az: ANA便ゾーン（null=ANA便では行けない） / pz: 提携社ゾーン / fuel: ANA便の燃油グループ
@@ -514,6 +625,7 @@
       { n:"瀋陽", r:"asia", az:"z3", pz:"z3", fuel:"ea", ana:1 },
       { n:"武漢", r:"asia", az:"z3", pz:"z3", fuel:"ea", ana:1 },
       { n:"香港", r:"asia", az:"z3", pz:"z3", fuel:"ea", ana:1 },
+      { n:"マカオ", r:"asia", az:null, pz:"z3", fuel:null, ana:0 },
       { n:"台北", r:"asia", az:"z3", pz:"z3", fuel:"ea", ana:1 },
       { n:"マニラ", r:"asia", az:"z3", pz:"z3", fuel:"ph", ana:1 },
       { n:"ハノイ", r:"asia", az:"z4", pz:"z4", fuel:"ph", ana:1 },
@@ -725,7 +837,8 @@
       tab:"dom",
       domMode:"airport", domFrom:"HND", domTo:"CTS", domBand:1, domSeason:"none", domTrip:"round", domPax:1,
       domDateOut:"", domDateRet:"",
-      mode:"ana", region:"all", dest:31, cls:"Y", season:"none", trip:"round", pax:1, ptype:"1A",
+      mode:"ana", region:"all", dest:32, cls:"Y", season:"none", trip:"round", pax:1, ptype:"1A",
+      starAir:"", indivAir:"ベトナム航空",
       dateOut:"", dateRet:""
     };
     var SEASON_IDX = { L:0, R:1, H:2 };
@@ -762,23 +875,37 @@
     function paxNum(v){ var n = parseInt(v,10); return (n>=1 && n<=5) ? n : 1; }
     function totalBarHtml(pax, perPerson){
       if(pax<=1) return "";
-      return '<div class="totalbar"><span>' + pax + '人分の合計</span><b>' + fmt(perPerson*pax) + ' マイル</b></div>';
+      return '<div class="total-bar">' + pax + '人分の合計 <b>' + fmt(perPerson*pax) + ' マイル</b></div>';
     }
-    function resultHtml(routeLabel, perPerson, tripLabel, pax, detail){
-      return '<div class="result"><p class="route">' + routeLabel + '</p>' +
-        '<p class="big">' + fmt(perPerson) + ' <small>マイル</small></p>' +
-        '<p class="per">1人あたり・' + tripLabel + '　' + detail + '</p>' +
+    function mileBoxHtml(kClass, kText, knText, miles, highlight){
+      var kHtml = kText ? '<div class="k ' + kClass + '">' + kText + '</div>' : '';
+      return '<div class="mile-box' + (highlight ? ' hl' : '') + '">' + kHtml +
+        '<div class="kn">' + knText + '</div>' +
+        '<div class="v">' + fmt(miles) + '</div>' +
+        '<div class="u">マイル（1人）</div></div>';
+    }
+    // opts: { kn: ボックス内ラベル, tag: メタ横のピルタグ, k: ボックス上部の記号, kClass: 色クラス }
+    function resultHtml(routeLabel, perPerson, tripLabel, pax, detail, opts){
+      opts = opts || {};
+      var kn = opts.kn || "必要マイル";
+      var tag = opts.tag ? '<span class="tag">' + opts.tag + '</span>' : '';
+      return '<div class="result-panel"><p class="result-head">' + routeLabel + '</p>' +
+        '<p class="result-meta">' + tripLabel + '　' + detail + tag + '</p>' +
+        '<div class="miles-grid single">' + mileBoxHtml(opts.kClass || "", opts.k || "", kn, perPerson, true) + '</div>' +
         totalBarHtml(pax, perPerson) + '</div>';
     }
     function resultAllHtml(routeLabel, items, tripLabel, pax, detailBase){
-      var rows = items.map(function(it){
-        var total = (pax>1) ? '<span class="s-total">' + pax + '人分の合計 ' + fmt(it.miles*pax) + ' マイル</span>' : '';
-        return '<div class="season-row"><span class="s-label">' + it.label + '<small>' + it.code + '</small></span>' +
-          '<span class="s-miles">' + fmt(it.miles) + ' <small>マイル</small></span>' + total + '</div>';
+      var boxes = items.map(function(it){
+        return mileBoxHtml("k" + it.code, it.code, it.label, it.miles, false);
       }).join("");
-      return '<div class="result"><p class="route">' + routeLabel + '</p>' +
-        '<p class="per" style="margin-top:0;opacity:.9">1人あたり・' + tripLabel + '　' + detailBase + '／シーズン別</p>' +
-        '<div class="season-rows">' + rows + '</div></div>';
+      var totalHtml = "";
+      if(pax>1){
+        var parts = items.map(function(it){ return it.code + " " + fmt(it.miles*pax); }).join(" ／ ");
+        totalHtml = '<div class="total-bar">' + pax + '人分の合計（シーズン別）<span class="tb-sub">' + parts + ' マイル</span></div>';
+      }
+      return '<div class="result-panel"><p class="result-head">' + routeLabel + '</p>' +
+        '<p class="result-meta">' + tripLabel + '　' + detailBase + '／シーズン別</p>' +
+        '<div class="miles-grid">' + boxes + '</div>' + totalHtml + '</div>';
     }
 
     function seasonStatement(d, leg, season){
@@ -830,7 +957,8 @@
               '<div class="notice warn"><p>' + fmtDateJa(S.domDateRet) + '（復路）は判定範囲外のため、復路も往路のシーズン（' + SEASON_NAME[dOutSeason] + '）で計算しています。判定できるのは2026年5月19日〜2028年3月31日の搭乗日です（それ以前は旧制度のため判定できません）。</p></div>';
             var dPerSame = DOM_CHART[band].v[SEASON_IDX[dOutSeason]] * 2;
             box.innerHTML = dBanner + resultHtml(routeLabel, dPerSame, tripLabel, pax,
-              "距離帯：" + DOM_CHART[band].label + "／" + SEASON_NAME[dOutSeason]) + noticeHtml;
+              "距離帯：" + DOM_CHART[band].label + "／" + SEASON_NAME[dOutSeason],
+              { k:dOutSeason, kClass:"k" + dOutSeason, kn:SEASON_NAME[dOutSeason], tag:"日付判定" }) + noticeHtml;
             return;
           }
           if(dRetSeason!==dOutSeason){
@@ -840,14 +968,16 @@
             dBanner = '<div class="notice info"><p>' + seasonStatement(S.domDateOut, "往路", dOutSeason) + '<br>' +
               seasonStatement(S.domDateRet, "復路", dRetSeason) + '<br>往路と復路でシーズンが異なるため、区間（片道）ごとに計算して合算しています。</p></div>';
             box.innerHTML = dBanner + resultHtml(routeLabel, dTotal, tripLabel, pax,
-              "距離帯：" + DOM_CHART[band].label + "／往路 " + fmt(dOutMiles) + "マイル（" + SEASON_NAME[dOutSeason] + "）＋復路 " + fmt(dRetMiles) + "マイル（" + SEASON_NAME[dRetSeason] + "）") + noticeHtml;
+              "距離帯：" + DOM_CHART[band].label + "／往路 " + fmt(dOutMiles) + "マイル（" + SEASON_NAME[dOutSeason] + "）＋復路 " + fmt(dRetMiles) + "マイル（" + SEASON_NAME[dRetSeason] + "）",
+              { kn:"必要マイル（往路＋復路）", tag:"日付判定" }) + noticeHtml;
             return;
           }
           dBanner = '<div class="notice info"><p>' + seasonStatement(S.domDateOut, "往路", dOutSeason) + '<br>' +
             seasonStatement(S.domDateRet, "復路", dRetSeason) + '</p></div>';
           var dPerEq = DOM_CHART[band].v[SEASON_IDX[dOutSeason]] * 2;
           box.innerHTML = dBanner + resultHtml(routeLabel, dPerEq, tripLabel, pax,
-            "距離帯：" + DOM_CHART[band].label + "／" + SEASON_NAME[dOutSeason]) + noticeHtml;
+            "距離帯：" + DOM_CHART[band].label + "／" + SEASON_NAME[dOutSeason],
+            { k:dOutSeason, kClass:"k" + dOutSeason, kn:SEASON_NAME[dOutSeason], tag:"日付判定" }) + noticeHtml;
           return;
         }
         if(S.domTrip==="round" && !S.domDateRet){
@@ -855,7 +985,8 @@
         }
         var dPer = DOM_CHART[band].v[SEASON_IDX[dOutSeason]] * mult;
         box.innerHTML = dBanner + resultHtml(routeLabel, dPer, tripLabel, pax,
-          "距離帯：" + DOM_CHART[band].label + "／" + SEASON_NAME[dOutSeason]) + dExtra + noticeHtml;
+          "距離帯：" + DOM_CHART[band].label + "／" + SEASON_NAME[dOutSeason],
+          { k:dOutSeason, kClass:"k" + dOutSeason, kn:SEASON_NAME[dOutSeason], tag:"日付判定" }) + dExtra + noticeHtml;
         return;
       }
       box.innerHTML = domManualHtml(routeLabel, band, tripLabel, mult, pax) + noticeHtml;
@@ -870,7 +1001,8 @@
       }
       var per = DOM_CHART[band].v[SEASON_IDX[S.domSeason]] * mult;
       return resultHtml(routeLabel, per, tripLabel, pax,
-        "距離帯：" + DOM_CHART[band].label + "／" + SEASON_NAME[S.domSeason]);
+        "距離帯：" + DOM_CHART[band].label + "／" + SEASON_NAME[S.domSeason],
+        { k:S.domSeason, kClass:"k" + S.domSeason, kn:SEASON_NAME[S.domSeason] });
     }
 
     /* ================= 国際線 ================= */
@@ -892,16 +1024,44 @@
     }
     function currentDest(){ return DESTS[S.dest]; }
 
+    function isPartnerMode(){ return S.mode==="star" || S.mode==="indiv"; }
+    function indivInfo(){ return INDIV_INFO[S.indivAir]; }
+    function renderIndivCard(){
+      var card = document.getElementById("indivCard");
+      var info = indivInfo();
+      var lines = info.lines.map(function(t){ return "<p>" + t + "</p>"; }).join("");
+      card.innerHTML = '<div class="airline-card"><h3>' + S.indivAir + '</h3>' +
+        '<p>全旅程を<b>' + S.indivAir + '1社の運航便だけ</b>で組む必要があります。他の航空会社との組み合わせはできません。</p>' + lines + '</div>';
+      document.getElementById("indivDirectNote").hidden = !info.calc;
+    }
     function renderIntl(){
       var dest = currentDest();
       var box = document.getElementById("intlResult");
       var pax = paxNum(S.pax);
       var tripLabel = (S.trip==="round") ? "往復" : "片道";
+      var partner = isPartnerMode();
       document.getElementById("seasonRow").hidden = (S.mode!=="ana");
       document.getElementById("dateRow").hidden = (S.mode!=="ana");
       document.getElementById("dateRetWrap").hidden = (S.trip!=="round");
-      document.getElementById("ptypeRow").hidden = (S.mode!=="partner");
-      document.getElementById("clsPyBtn").disabled = (S.mode==="partner");
+      document.getElementById("ptypeRow").hidden = !partner;
+      document.getElementById("clsPyBtn").disabled = partner;
+      document.getElementById("starRuleRow").hidden = (S.mode!=="star");
+      document.getElementById("starFilterRow").hidden = (S.mode!=="star");
+      document.getElementById("starFilterNote").hidden = !(S.mode==="star" && S.starAir);
+      document.getElementById("indivRuleRow").hidden = (S.mode!=="indiv");
+      document.getElementById("indivRow").hidden = (S.mode!=="indiv");
+      if(S.mode==="indiv") renderIndivCard();
+      if(!dest){
+        if(S.mode==="indiv" && !indivInfo().calc){
+          box.innerHTML = '<div class="notice warn"><p><b>' + S.indivAir + '</b> は日本発着の直行便がないため、このツールでは目的地の計算対象外です。理由は上のカードをご確認ください。</p></div>';
+        } else {
+          box.innerHTML = '<div class="notice warn"><p>現在の絞り込み条件に合う目的地がありません。地域または航空会社の絞り込みを変えてください。</p></div>';
+        }
+        document.getElementById("seasonBox").innerHTML = "";
+        document.getElementById("fuelBox").innerHTML = "";
+        document.getElementById("compareBox").innerHTML = "";
+        return;
+      }
 
       // 搭乗日によるシーズン自動判定（ANA便のみ・手動選択より優先）
       var dateValid = false, dateSeasonOut = null, dateSeasonRet = null, dateSplit = false, dateOutInvalid = false;
@@ -937,7 +1097,7 @@
 
       if(S.mode==="ana"){
         if(!dest.ana){
-          box.innerHTML = '<div class="notice warn"><p><b>' + dest.n + '</b> はANA便が就航していない行き先です。「提携航空会社」に切り替えると、' +
+          box.innerHTML = '<div class="notice warn"><p><b>' + dest.n + '</b> はANA便が就航していない行き先です。「スターアライアンス特典」または「個別提携社特典」に切り替えると、' +
             ZONE_NAME[dest.pz] + ' のチャートで計算できます。</p></div>';
         } else if(dateValid){
           var rowD = ANA_CHART[dest.az][S.cls];
@@ -948,11 +1108,13 @@
             var outM = anaMiles(dest, S.cls, dateSeasonOut, "one");
             var retM = anaMiles(dest, S.cls, dateSeasonRet, "one");
             box.innerHTML = dateBanner + resultHtml("東京 〜 " + dest.n + "（ANA便）", outM + retM, tripLabel, pax,
-              ZONE_NAME[dest.az] + "／" + CLS_NAME[S.cls] + "／往路 " + fmt(outM) + "マイル（" + SEASON_NAME[dateSeasonOut] + "）＋復路 " + fmt(retM) + "マイル（" + SEASON_NAME[dateSeasonRet] + "）");
+              ZONE_NAME[dest.az] + "／" + CLS_NAME[S.cls] + "／往路 " + fmt(outM) + "マイル（" + SEASON_NAME[dateSeasonOut] + "）＋復路 " + fmt(retM) + "マイル（" + SEASON_NAME[dateSeasonRet] + "）",
+              { kn:"必要マイル（往路＋復路）", tag:"日付判定" });
           } else {
             var dv = anaMiles(dest, S.cls, dateSeasonOut, S.trip);
             box.innerHTML = dateBanner + resultHtml("東京 〜 " + dest.n + "（ANA便）", dv, tripLabel, pax,
-              ZONE_NAME[dest.az] + "／" + CLS_NAME[S.cls] + "／" + SEASON_NAME[dateSeasonOut]) + dateExtra;
+              ZONE_NAME[dest.az] + "／" + CLS_NAME[S.cls] + "／" + SEASON_NAME[dateSeasonOut],
+              { k:dateSeasonOut, kClass:"k" + dateSeasonOut, kn:SEASON_NAME[dateSeasonOut], tag:"日付判定" }) + dateExtra;
           }
         } else if(S.season==="none"){
           var rowCheck = ANA_CHART[dest.az][S.cls];
@@ -973,19 +1135,22 @@
               ' には設定がありません。ファーストクラスはアジア2・ハワイ・北米・欧州方面のみ、プレミアムエコノミーは韓国方面を除く方面に設定があります。</p></div>';
           } else {
             box.innerHTML = resultHtml("東京 〜 " + dest.n + "（ANA便）", v, tripLabel, pax,
-              ZONE_NAME[dest.az] + "／" + CLS_NAME[S.cls] + "／" + SEASON_NAME[S.season]);
+              ZONE_NAME[dest.az] + "／" + CLS_NAME[S.cls] + "／" + SEASON_NAME[S.season],
+              { k:S.season, kClass:"k" + S.season, kn:SEASON_NAME[S.season] });
           }
         }
       } else {
+        var modeLabel = (S.mode==="star") ? "スターアライアンス特典" : "個別提携社特典・" + S.indivAir;
         if(S.cls==="PY"){
-          box.innerHTML = '<div class="notice warn"><p>提携航空会社の特典航空券に<b>プレミアムエコノミーの設定はありません</b>。エコノミー／ビジネス／ファーストから選んでください。</p></div>';
+          box.innerHTML = '<div class="notice warn"><p>' + ((S.mode==="star") ? "スターアライアンス特典" : "個別提携社特典") + 'に<b>プレミアムエコノミーの設定はありません</b>。エコノミー／ビジネス／ファーストから選んでください。</p></div>';
         } else {
           var pm = partnerMiles(dest, S.cls, S.ptype, S.trip);
           var note = "";
           if(pm.usedType!==S.ptype) note = '<div class="notice info"><p>この方面は1-Aに設定がないため、<b>1-B</b>のチャートで計算しています。</p></div>';
           var srcNote = dest.ana ? "" : "（ANA便は就航なし・提携社のみ）";
-          box.innerHTML = resultHtml("東京 〜 " + dest.n + "（提携航空会社）", pm.miles, tripLabel, pax,
-            ZONE_NAME[dest.pz] + "／" + CLS_NAME[S.cls] + "／旅程タイプ " + pm.usedType.replace("1","1-") + "・シーズン区分なし" + srcNote) + note;
+          box.innerHTML = resultHtml("東京 〜 " + dest.n + "（" + modeLabel + "）", pm.miles, tripLabel, pax,
+            ZONE_NAME[dest.pz] + "／" + CLS_NAME[S.cls] + "／旅程タイプ " + pm.usedType.replace("1","1-") + "・シーズン区分なし" + srcNote,
+            { kn:"必要マイル", tag:"固定チャート" }) + note;
         }
       }
       if(dateOutInvalid && S.mode==="ana") box.innerHTML = dateWarnHtml + box.innerHTML;
@@ -1020,8 +1185,8 @@
           '<p>燃油サーチャージは発券日ベースで2か月ごとに改定されます。金額は目安で、諸税・空港使用料は別途かかります。乗り継ぎがある旅程では区間ごとに加算されます。</p></div>';
       } else {
         function chips(list){ return list.map(function(n){ return "<span>" + n + "</span>"; }).join(""); }
-        box.innerHTML = '<div class="fuel"><h3>燃油サーチャージ（提携航空会社）</h3>' +
-          '<p>ANAの提携社特典は、<b>運航会社が燃油サーチャージを徴収しない会社なら、諸税だけで発券できます</b>。ANA便では全路線でかかる燃油を避けられるのが、提携社を使う大きな利点です。金額ではなく、航空会社ごとの水準で見てください。</p>' +
+        box.innerHTML = '<div class="fuel"><h3>燃油サーチャージ（提携特典）</h3>' +
+          '<p>ANAの提携特典（スターアライアンス特典／個別提携社特典）は、<b>運航会社が燃油サーチャージを徴収しない会社なら、諸税だけで発券できます</b>。ANA便では全路線でかかる燃油を避けられるのが、提携特典を使う大きな利点です。金額ではなく、航空会社ごとの水準で見てください。</p>' +
           '<div class="tier t-none"><span class="tlab">燃油サーチャージなし</span><div class="chips">' + chips(FUEL_NONE) + '</div></div>' +
           '<div class="tier t-high"><span class="tlab">高い（運航会社のサーチャージが加算）</span><div class="chips">' + chips(FUEL_HIGH) + '</div></div>' +
           '<p style="margin-bottom:6px">ルフトハンザグループ各社は、運航会社の燃油サーチャージがそのまま上乗せされ、欧州往復では数万円規模になることがあります。</p>' +
@@ -1032,8 +1197,9 @@
 
     function renderCompare(dest, pax, tripLabel){
       var box = document.getElementById("compareBox");
+      var partnerName = (S.mode==="indiv") ? "個別提携社特典" : "スターアライアンス特典";
       if(S.cls==="PY"){
-        box.innerHTML = '<div class="compare"><h3>ANA便と提携社の比較</h3><p style="margin:0">提携社にプレミアムエコノミーの設定がないため、このクラスでは比較できません。</p></div>';
+        box.innerHTML = '<div class="compare"><h3>ANA便と' + partnerName + 'の比較</h3><p style="margin:0">' + partnerName + 'にプレミアムエコノミーの設定がないため、このクラスでは比較できません。</p></div>';
         return;
       }
       var pm = partnerMiles(dest, S.cls, "1A", S.trip);
@@ -1044,25 +1210,34 @@
         ["L","R","H"].forEach(function(k){
           var av = anaMiles(dest, S.cls, k, S.trip);
           var aTxtAll = dest.ana ? cell(av) : "就航なし";
-          rowsHtml += '<tr><td>ANA便（' + SEASON_NAME[k] + '）</td><td>' + aTxtAll + '</td></tr>';
+          rowsHtml += '<div class="cmp-row"><span class="c-lab">ANA便（' + SEASON_NAME[k] + '）</span><span class="c-val">' + aTxtAll + '</span></div>';
         });
       } else {
         var a = anaMiles(dest, S.cls, S.season, S.trip);
         var aTxt = dest.ana ? cell(a) : "就航なし";
-        rowsHtml = '<tr><td>ANA便（' + SEASON_NAME[S.season] + '）</td><td>' + aTxt + '</td></tr>';
+        rowsHtml = '<div class="cmp-row"><span class="c-lab">ANA便（' + SEASON_NAME[S.season] + '）</span><span class="c-val">' + aTxt + '</span></div>';
       }
-      rowsHtml += '<tr><td>提携航空会社（シーズンなし）</td><td>' + pTxt + '</td></tr>';
-      box.innerHTML = '<div class="compare"><h3>ANA便と提携社の比較（' + tripLabel + '・1人あたり・' + CLS_NAME[S.cls] + '）</h3>' +
-        '<table>' + rowsHtml + '</table>' +
-        '<p style="margin:6px 0 0;color:var(--ink2)">ANA便はシーズンで変動し、提携社は年中同じマイル数です。現金でかかる燃油サーチャージは、ANA便は全路線で必要、提携社は航空会社により無料〜高額と差があります。</p></div>';
+      rowsHtml += '<div class="cmp-row"><span class="c-lab">' + partnerName + '（シーズンなし）</span><span class="c-val">' + pTxt + '</span></div>';
+      box.innerHTML = '<div class="compare"><h3>ANA便と' + partnerName + 'の比較（' + tripLabel + '・1人あたり・' + CLS_NAME[S.cls] + '）</h3>' +
+        rowsHtml +
+        '<p style="margin:6px 0 0;color:var(--ink2)">ANA便はシーズンで変動し、' + partnerName + 'は年中同じマイル数です。現金でかかる燃油サーチャージは、ANA便は全路線で必要、提携特典は航空会社により無料〜高額と差があります。</p></div>';
     }
 
     function render(){ renderDom(); renderIntl(); }
 
     /* ================= 初期化 ================= */
+    function allowedDestNames(){
+      if(S.mode==="star" && S.starAir) return STAR_DIRECT[S.starAir] || [];
+      if(S.mode==="indiv"){
+        var info = indivInfo();
+        return info.calc ? info.direct : [];
+      }
+      return null;
+    }
     function fillDestSelect(){
       var sel = document.getElementById("destSel");
       sel.innerHTML = "";
+      var allowed = allowedDestNames();
       var order = ["asia","hawaii","namerica","europe","oceania","latin","middleeast","africa"];
       var firstIdx = -1;
       order.forEach(function(rk){
@@ -1071,6 +1246,7 @@
         group.label = REGIONS[rk];
         DESTS.forEach(function(d, i){
           if(d.r!==rk) return;
+          if(allowed && allowed.indexOf(d.n)<0) return;
           var o = document.createElement("option");
           o.value = i;
           o.textContent = d.n + (d.ana ? "" : "（提携社のみ）");
@@ -1079,8 +1255,18 @@
         });
         if(group.children.length) sel.appendChild(group);
       });
+      if(firstIdx<0){
+        var o0 = document.createElement("option");
+        o0.value = -1;
+        o0.textContent = (S.mode==="indiv" && !indivInfo().calc) ? "計算対象外（直行便なし）" : "該当する目的地がありません";
+        sel.appendChild(o0);
+        S.dest = -1;
+        sel.value = -1;
+        return;
+      }
       var cur = DESTS[S.dest];
-      if(!cur || (S.region!=="all" && cur.r!==S.region)) S.dest = firstIdx;
+      var curAllowed = !allowed || (cur && allowed.indexOf(cur.n)>=0);
+      if(!cur || (S.region!=="all" && cur.r!==S.region) || !curAllowed) S.dest = firstIdx;
       sel.value = S.dest;
     }
 
@@ -1103,7 +1289,22 @@
       segWire("domSeasonSeg","domSeason");
       segWire("domTripSeg","domTrip");
       segWire("domPaxSeg","domPax");
-      segWire("modeSeg","mode");
+      segWire("modeSeg","mode", function(){ fillDestSelect(); });
+      var starSel = document.getElementById("starAirSel");
+      var oAll = document.createElement("option");
+      oAll.value = ""; oAll.textContent = "指定しない（すべての目的地）";
+      starSel.appendChild(oAll);
+      STAR_AIRLINES.forEach(function(n){
+        var o = document.createElement("option"); o.value = n; o.textContent = n; starSel.appendChild(o);
+      });
+      starSel.value = S.starAir;
+      starSel.addEventListener("change", function(){ S.starAir = starSel.value; fillDestSelect(); render(); });
+      var indivSel = document.getElementById("indivAirSel");
+      INDIV_AIRLINES.forEach(function(n){
+        var o = document.createElement("option"); o.value = n; o.textContent = n; indivSel.appendChild(o);
+      });
+      indivSel.value = S.indivAir;
+      indivSel.addEventListener("change", function(){ S.indivAir = indivSel.value; fillDestSelect(); render(); });
       segWire("regionSeg","region", function(){ fillDestSelect(); });
       segWire("clsSeg","cls");
       segWire("seasonSeg","season");
