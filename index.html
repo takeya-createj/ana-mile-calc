@@ -236,6 +236,9 @@
       table.plain{ width:100%; border-collapse:collapse; font-size:13.5px; margin:0 0 10px; font-variant-numeric:tabular-nums; }
       table.plain th, table.plain td{ border:1px solid var(--line); padding:5px 8px; text-align:left; vertical-align:top; }
       table.plain th{ background:var(--chip); font-weight:700; }
+      .table-scroll{ overflow-x:auto; -webkit-overflow-scrolling:touch; margin:0 0 10px; }
+      .table-scroll table.plain{ margin:0; min-width:560px; }
+      .table-scroll table.plain th:first-child, .table-scroll table.plain td:first-child{ white-space:nowrap; font-weight:700; }
       .seasonbox{ margin-top:14px; font-size:13.5px; background:var(--sky-soft); border-radius:10px; padding:11px 13px; }
       .seasonbox h3{ font-size:14px; margin:0 0 6px; }
       .seasonbox table{ width:100%; border-collapse:collapse; font-variant-numeric:tabular-nums; }
@@ -576,6 +579,23 @@
             <li>国内線の2区間利用（乗り継ぎ）は、1区間ごとの必要マイルの合算です。</li>
             <li>データの出典：このツールのマイル数は、ANA公式の必要マイルチャート（2025年6月24日改定分）に基づきます（2026年11月26日確認）。</li>
           </ul>
+        </div>
+      </details>
+
+      <details class="ref">
+        <summary>乗り継ぎ・途中降機の比較（全制度）</summary>
+        <div class="body">
+          <div class="table-scroll">
+            <table class="plain">
+              <tr><th>制度名</th><th>乗り継ぎ（トランジット）</th><th>途中降機（ストップオーバー）</th></tr>
+              <tr><td>ANA便</td><td>日本国内のみ（片道1回まで／往復は往路・復路各1回まで）</td><td>海外発の往復のみ目的地以外に1回まで。日本発は途中降機不可</td></tr>
+              <tr><td>スターアライアンス特典</td><td>片道で計3回まで（国内1回＋海外2回）／往復で計6回まで（国内は往路・復路各1回、海外は往路・復路各2回）</td><td>往復で目的地以外に1回まで（片道は不可。乗り換え回数に含まれる）</td></tr>
+              <tr><td>個別提携社特典</td><td>片道で計3回まで（国内1回＋海外2回）／往復で計6回まで（国内は往路・復路各1回、海外は往路・復路各2回）</td><td>往復で目的地以外に1回まで（片道は不可。乗り換え回数に含まれる）</td></tr>
+              <tr><td>JAL便</td><td>「国内線→国際線」（復路は国際線→国内線）の形だけ（片道ごとに国際線1区間・国内線1区間まで）。国際線同士の乗り継ぎは不可</td><td>不可（国内で乗り継ぐ場合、24時間を超える滞在は不可）</td></tr>
+              <tr><td>JAL提携社特典</td><td>1特典で使える区間数（通常6区間まで、航空会社により例外あり）の範囲内で可能</td><td>旅程全体で3回まで（片道・往復共通）。地上移動は旅程全体で1回までで、途中降機1回として数える</td></tr>
+              <tr><td>ワンワールド特典</td><td>最大8区間の範囲内で可能</td><td>旅程全体で7回まで（片道・往復共通）。日本発着の旅程では日本国内の途中降機は不可</td></tr>
+            </table>
+          </div>
         </div>
       </details>
 
